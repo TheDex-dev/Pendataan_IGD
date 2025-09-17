@@ -1,0 +1,208 @@
+{
+  "info": {
+    "name": "Pendataan_IGD API",
+    "_postman_id": "b2f4d1f9-0000-0000-0000-000000000000",
+    "description": "Collection for Pendataan_IGD API (Sanctum session-based authentication).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get CSRF Cookie (sanctum)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/sanctum/csrf-cookie",
+          "host": ["{{base_url}}"],
+          "path": ["api","sanctum","csrf-cookie"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login (session)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Ensure CSRF token header is set from cookie XSRF-TOKEN if available",
+              "const xsrf = pm.cookies.get('XSRF-TOKEN');",
+              "if (xsrf) {",
+              "    pm.environment.set('XSRF-TOKEN', xsrf);",
+              "}",
+              "// If not present, user should run the 'Get CSRF Cookie' request first"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-XSRF-TOKEN",
+            "value": "{{XSRF-TOKEN}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@igd.com\",\n  \"password\": \"admin123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api","auth","login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Authenticated User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/user",
+          "host": ["{{base_url}}"],
+          "path": ["api","auth","user"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth Check",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/check",
+          "host": ["{{base_url}}"],
+          "path": ["api","auth","check"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Logout (session)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "X-XSRF-TOKEN",
+            "value": "{{XSRF-TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/logout",
+          "host": ["{{base_url}}"],
+          "path": ["api","auth","logout"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Session Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/session-stats",
+          "host": ["{{base_url}}"],
+          "path": ["api","session-stats"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Escorts (public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/escort",
+          "host": ["{{base_url}}"],
+          "path": ["api","escort"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Escort (public)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "multipart/form-data"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "kategori_pengantar", "value": "Perorangan", "type": "text" },
+            { "key": "nama_pengantar", "value": "Budi", "type": "text" },
+            { "key": "jenis_kelamin", "value": "Laki-laki", "type": "text" },
+            { "key": "nomor_hp", "value": "+628123456789", "type": "text" },
+            { "key": "plat_nomor", "value": "B 1234 ABC", "type": "text" },
+            { "key": "nama_pasien", "value": "Siti", "type": "text" },
+            { "key": "foto_pengantar", "type": "file", "src": [] }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/escort",
+          "host": ["{{base_url}}"],
+          "path": ["api","escort"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Protected: Dashboard Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/dashboard/stats",
+          "host": ["{{base_url}}"],
+          "path": ["api","dashboard","stats"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "XSRF-TOKEN",
+      "value": ""
+    }
+  ]
+}

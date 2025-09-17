@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EscortApi;
+use App\Http\Controllers\Api\AuthApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,15 @@ use App\Http\Controllers\Api\EscortApi;
 |
 */
 
+// Sanctum authentication routes
+Route::get('/sanctum/csrf-cookie', [AuthApiController::class, 'csrfToken']);
+Route::post('/auth/login', [AuthApiController::class, 'login']);
+Route::post('/auth/logout', [AuthApiController::class, 'logout']);
+Route::get('/auth/check', [AuthApiController::class, 'check']);
+Route::get('/auth/user', [AuthApiController::class, 'user']);
+Route::get('/auth/sanctum', [AuthApiController::class, 'sanctum']);
+
+// Authentication required routes
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -25,7 +35,10 @@ Route::apiResource('escort', EscortApi::class)->only(['store']);
 // Session stats endpoint (public for monitoring)
 Route::get('/session-stats', [EscortApi::class, 'getSessionStats']);
 
-// Protected API routes - require web session authentication (IGD Staff only)
-Route::middleware('auth:web')->group(function () {
+// Protected API routes - require authentication (IGD Staff only)
+Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('escort', EscortApi::class)->except(['store']);
+    
+    // Additional protected endpoints
+    Route::get('/dashboard/stats', [EscortApi::class, 'getDashboardStats']);
 });

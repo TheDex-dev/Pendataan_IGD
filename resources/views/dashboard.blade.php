@@ -211,6 +211,80 @@ $(document).ready(function() {
             }
         });
     }
+
+    }
+});    // Example: Load escorts via Sanctum API
+    function loadEscortsViaAPI(filters = {}) {
+        if (typeof sanctumAuth !== 'undefined' && sanctumAuth.authenticated) {
+            $('#loading').removeClass('d-none');
+            
+            sanctumAuth.getEscorts(filters)
+                .then(response => {
+                    console.log('Escorts from API:', response);
+                    $('#loading').addClass('d-none');
+                    
+                    // You can process the API response here
+                    // For now, we'll just log it and show a success message
+                    if (response.data) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'API Data Loaded',
+                            text: `Loaded ${response.data.length} escorts via Sanctum API`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                })
+                .catch(error => {
+                    $('#loading').addClass('d-none');
+                    console.error('Failed to load escorts via API:', error);
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'API Error',
+                        text: 'Failed to load data via API: ' + error.message
+                    });
+                });
+        }
+    }
+
+
+
+    // Function to check Sanctum authentication status
+    function checkSanctumStatus() {
+        if (typeof sanctumAuth !== 'undefined') {
+            sanctumAuth.checkAuthStatus()
+                .then(response => {
+                    const status = `
+                        <div class="alert alert-info">
+                            <h6>Sanctum Authentication Status:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Authenticated:</strong> ${response.authenticated ? 'Yes' : 'No'}</li>
+                                <li><strong>User:</strong> ${response.user ? response.user.name + ' (' + response.user.email + ')' : 'Not logged in'}</li>
+                                <li><strong>CSRF Token:</strong> ${response.csrf_token ? 'Present' : 'Missing'}</li>
+                                <li><strong>Session ID:</strong> ${sanctumAuth.sessionId || 'N/A'}</li>
+                            </ul>
+                        </div>
+                    `;
+                    $('#api-status').html(status);
+                })
+                .catch(error => {
+                    const status = `
+                        <div class="alert alert-danger">
+                            <h6>Authentication Check Failed:</h6>
+                            <p class="mb-0">${error.message}</p>
+                        </div>
+                    `;
+                    $('#api-status').html(status);
+                });
+        } else {
+            $('#api-status').html(`
+                <div class="alert alert-warning">
+                    <p class="mb-0">Sanctum authentication helper not loaded.</p>
+                </div>
+            `);
+        }
+    }
 });
 </script>
 @endpush

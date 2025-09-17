@@ -88,7 +88,7 @@
                         <div class="text-muted">
                             <i class="fas fa-inbox fa-3x mb-3"></i>
                             <p class="mb-0">Tidak ada data escort yang ditemukan</p>
-                            <small>Coba ubah filter pencarian atau <a href="{{ route('form.index') }}">tambah data baru</a></small>
+                            <small>Coba ubah filter pencarian atau tunggu respon dari server</small>
                         </div>
                     </td>
                 </tr>

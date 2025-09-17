@@ -530,4 +530,56 @@ class EscortApi extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get dashboard statistics for authenticated users
+     */
+    public function getDashboardStats()
+    {
+        try {
+            $stats = [
+                'total_escorts' => EscortModel::count(),
+                'today_submissions' => EscortModel::whereDate('created_at', today())->count(),
+                'this_week_submissions' => EscortModel::whereBetween('created_at', [
+                    now()->startOfWeek(),
+                    now()->endOfWeek()
+                ])->count(),
+                'this_month_submissions' => EscortModel::whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)
+                    ->count(),
+                'by_category' => EscortModel::selectRaw('kategori_pengantar, COUNT(*) as count')
+                    ->groupBy('kategori_pengantar')
+                    ->pluck('count', 'kategori_pengantar'),
+                'recent_submissions' => EscortModel::latest()
+                    ->limit(5)
+                    ->select('id', 'nama_pengantar', 'nama_pasien', 'kategori_pengantar', 'created_at')
+                    ->get()
+            ];
+
+            // Add session-specific stats
+            $stats['session_info'] = [
+                'session_id' => Session::getId(),
+                'api_access_count' => Session::get('api_access_count', 0),
+                'user_submissions' => Session::get('api_submissions_count', 0),
+                'last_accessed' => Session::get('api_last_accessed')
+            ];
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Dashboard stats retrieved successfully',
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Dashboard Stats Error', [
+                'error' => $e->getMessage(),
+                'session_id' => Session::getId()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve dashboard stats',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

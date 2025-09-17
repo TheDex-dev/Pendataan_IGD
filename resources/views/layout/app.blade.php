@@ -98,6 +98,9 @@
     {{-- SweetAlert2 JS --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    {{-- Sanctum Authentication Helper --}}
+    <script src="{{ asset('js/sanctum-auth.js') }}"></script>
+    
     {{-- Global Scripts --}}
     <script>
         // Global CSRF Token setup
@@ -118,6 +121,20 @@
                 $('.alert').fadeOut('slow');
             }, 5000);
         });
+
+        // Initialize Sanctum authentication on page load
+        @auth
+        document.addEventListener('DOMContentLoaded', function() {
+            // User is already authenticated via session
+            sanctumAuth.authenticated = true;
+            sanctumAuth.user = @json(Auth::user());
+            
+            // Initialize Sanctum for API calls
+            sanctumAuth.initializeSanctum().catch(error => {
+                console.warn('Failed to initialize Sanctum:', error);
+            });
+        });
+        @endauth
     </script>
     
     {{-- Additional Scripts --}}
