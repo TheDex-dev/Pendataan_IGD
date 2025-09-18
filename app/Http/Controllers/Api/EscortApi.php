@@ -727,6 +727,4 @@ class EscortApi extends Controller
             ], 500);
         }
     }
-
-    public 
 }
