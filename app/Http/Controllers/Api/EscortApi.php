@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EscortApi extends Controller
 {
@@ -109,7 +110,7 @@ class EscortApi extends Controller
         DB::beginTransaction();
         
         try {
-            // Enhanced validation with custom messages
+            // Enhanced validation with custom messages for base64 images
             $validatedData = $request->validate([
                 'kategori_pengantar' => 'required|in:Polisi,Ambulans,Perorangan',
                 'nama_pengantar' => 'required|string|max:255|min:3',
@@ -117,7 +118,11 @@ class EscortApi extends Controller
                 'nomor_hp' => 'required|string|max:20|min:10|regex:/^[0-9+\-\s]+$/',
                 'plat_nomor' => 'required|string|max:20|min:3',
                 'nama_pasien' => 'required|string|max:255|min:3',
-                'foto_pengantar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'foto_pengantar_base64' => 'required|string',
+                'foto_pengantar_info' => 'nullable|array',
+                'foto_pengantar_info.name' => 'nullable|string',
+                'foto_pengantar_info.size' => 'nullable|integer|max:2097152', // 2MB in bytes
+                'foto_pengantar_info.type' => 'nullable|string|in:image/jpeg,image/png,image/jpg,image/gif',
                 'status' => 'nullable|in:pending,verified,rejected'
             ], [
                 'nama_pengantar.required' => 'Nama pengantar wajib diisi.',
@@ -129,26 +134,79 @@ class EscortApi extends Controller
                 'plat_nomor.min' => 'Plat nomor minimal 3 karakter.',
                 'nama_pasien.required' => 'Nama pasien wajib diisi.',
                 'nama_pasien.min' => 'Nama pasien minimal 3 karakter.',
-                'foto_pengantar.image' => 'File harus berupa gambar.',
-                'foto_pengantar.max' => 'Ukuran foto maksimal 2MB.',
+                'foto_pengantar_base64.required' => 'Foto pengantar wajib diisi.',
+                'foto_pengantar_info.size.max' => 'Ukuran foto maksimal 2MB.',
+                'foto_pengantar_info.type.in' => 'Format foto harus berupa JPEG, PNG, JPG, atau GIF.',
                 'status.in' => 'Status harus berupa pending, verified, atau rejected.',
             ]);
             
-            // Handle file upload with session tracking
-            if ($request->hasFile('foto_pengantar')) {
-                $file = $request->file('foto_pengantar');
-                $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+            // Handle base64 image processing
+            if (isset($validatedData['foto_pengantar_base64'])) {
+                $base64Image = $validatedData['foto_pengantar_base64'];
+                $imageInfo = $validatedData['foto_pengantar_info'] ?? [];
                 
-                // Store file info in session
-                Session::put("api_submission_{$submissionId}_file", [
-                    'original_name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                    'stored_name' => $filename
-                ]);
-                
-                $file->storeAs('public/uploads', $filename);
-                $validatedData['foto_pengantar'] = 'uploads/' . $filename;
+                // Validate and process base64 image
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                    $imageExtension = strtolower($type[1]); // jpg, png, gif
+                    
+                    // Validate extension
+                    if (!in_array($imageExtension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                        throw new \Exception('Format gambar tidak didukung. Gunakan JPG, PNG, atau GIF.');
+                    }
+                    
+                    // Remove the data:image/...;base64, part
+                    $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+                    
+                    // Decode base64
+                    $imageData = base64_decode($base64Image);
+                    
+                    if ($imageData === false) {
+                        throw new \Exception('Gagal memproses data gambar.');
+                    }
+                    
+                    // Validate decoded image size
+                    $imageSize = strlen($imageData);
+                    $maxSize = 2 * 1024 * 1024; // 2MB
+                    if ($imageSize > $maxSize) {
+                        throw new \Exception('Ukuran gambar melebihi batas maksimal 2MB.');
+                    }
+                    
+                    // Generate unique filename
+                    $originalName = $imageInfo['name'] ?? 'uploaded_image.' . $imageExtension;
+                    $filename = time() . '_' . uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $originalName);
+                    
+                    // Ensure the filename has correct extension
+                    $pathInfo = pathinfo($filename);
+                    if (!isset($pathInfo['extension']) || !in_array(strtolower($pathInfo['extension']), ['jpg', 'jpeg', 'png', 'gif'])) {
+                        $filename = $pathInfo['filename'] . '.' . $imageExtension;
+                    }
+                    
+                    // Save to storage
+                    $storagePath = 'public/uploads/' . $filename;
+                    if (!Storage::put($storagePath, $imageData)) {
+                        throw new \Exception('Gagal menyimpan gambar ke storage.');
+                    }
+                    
+                    // Store file info in session
+                    Session::put("api_submission_{$submissionId}_file", [
+                        'original_name' => $originalName,
+                        'stored_name' => $filename,
+                        'size' => $imageSize,
+                        'mime_type' => $imageInfo['type'] ?? 'image/' . $imageExtension,
+                        'base64_length' => strlen($validatedData['foto_pengantar_base64']),
+                        'extension' => $imageExtension
+                    ]);
+                    
+                    // Set the path for database storage
+                    $validatedData['foto_pengantar'] = 'uploads/' . $filename;
+                    
+                    // Remove base64 fields from validated data
+                    unset($validatedData['foto_pengantar_base64']);
+                    unset($validatedData['foto_pengantar_info']);
+                    
+                } else {
+                    throw new \Exception('Format data gambar tidak valid. Pastikan gambar dalam format base64 yang benar.');
+                }
             }
             
             // Add tracking data

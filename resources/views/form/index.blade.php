@@ -230,6 +230,23 @@
         color: #1cc88a;
     }
 
+    .file-input-display.processing {
+        border-color: #4e73df;
+        background: #f0f4ff;
+    }
+
+    .file-input-display.processing .file-text {
+        color: #4e73df;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
     .form-row {
         display: flex;
         flex-wrap: wrap;
@@ -392,16 +409,20 @@
 
                     <div class="form-group">
                         <label for="foto_pengantar" class="form-label">
-                            <i class="fas fa-camera"></i> Foto Pengantar
+                            <i class="fas fa-camera"></i> Foto Pengantar <span class="text-danger">*</span>
                         </label>
                         <div class="file-input-wrapper">
                             <input type="file" class="file-input" id="foto_pengantar" name="foto_pengantar" 
-                                   accept="image/*" required>
+                                   accept="image/*">
                             <div class="file-input-display">
                                 <i class="fas fa-cloud-upload-alt file-icon"></i>
                                 <span class="file-text">Klik untuk memilih foto atau drag & drop</span>
                             </div>
                         </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Maksimal 2MB. Format yang didukung: JPG, PNG, GIF
+                        </small>
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="submitBtn">
@@ -423,39 +444,149 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
 <script>
     $(document).ready(function() {
-        // File input handling
+        // File input handling with base64 encoding
+        let selectedImageBase64 = null;
+        let selectedImageInfo = null;
+        
         $('#foto_pengantar').on('change', function() {
             const file = this.files[0];
             const display = $('.file-input-display');
             const text = $('.file-text');
             
             if (file) {
-                display.addClass('has-file');
-                text.text(`File dipilih: ${file.name}`);
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Format File Tidak Valid',
+                        text: 'Harap pilih file gambar dengan format JPG, PNG, atau GIF.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    this.value = '';
+                    display.removeClass('has-file');
+                    text.text('Klik untuk memilih foto atau drag & drop');
+                    selectedImageBase64 = null;
+                    selectedImageInfo = null;
+                    return;
+                }
+                
+                // Validate file size (2MB max)
+                const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                if (file.size > maxSize) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ukuran File Terlalu Besar',
+                        text: 'Ukuran file maksimal adalah 2MB. Silakan pilih file yang lebih kecil.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    this.value = '';
+                    display.removeClass('has-file');
+                    text.text('Klik untuk memilih foto atau drag & drop');
+                    selectedImageBase64 = null;
+                    selectedImageInfo = null;
+                    return;
+                }
+                
+                // Show loading state
+                display.addClass('processing').removeClass('has-file');
+                text.html('<i class="fas fa-spinner fa-spin"></i> Memproses gambar...');
+                
+                // Convert to base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedImageBase64 = e.target.result;
+                    selectedImageInfo = {
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        lastModified: file.lastModified
+                    };
+                    
+                    display.removeClass('processing').addClass('has-file');
+                    text.html(`<i class="fas fa-check-circle text-success"></i> File dipilih: ${file.name} (${formatFileSize(file.size)})`);
+                    
+                    console.log('Image encoded to base64, size:', selectedImageBase64.length, 'characters');
+                };
+                
+                reader.onerror = function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Memproses File',
+                        text: 'Terjadi kesalahan saat memproses file gambar. Silakan coba lagi.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    display.removeClass('processing has-file');
+                    text.text('Klik untuk memilih foto atau drag & drop');
+                    selectedImageBase64 = null;
+                    selectedImageInfo = null;
+                };
+                
+                reader.readAsDataURL(file);
             } else {
                 display.removeClass('has-file');
                 text.text('Klik untuk memilih foto atau drag & drop');
+                selectedImageBase64 = null;
+                selectedImageInfo = null;
             }
         });
+        
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
-        // Drag and drop functionality
+        // Drag and drop functionality with base64 support
         $('.file-input-display').on('dragover', function(e) {
             e.preventDefault();
-            $(this).css('border-color', '#667eea');
+            $(this).css('border-color', '#4e73df');
         });
 
         $('.file-input-display').on('dragleave', function(e) {
             e.preventDefault();
-            $(this).css('border-color', '#e9ecef');
+            $(this).css('border-color', '#d1d3e2');
         });
 
         $('.file-input-display').on('drop', function(e) {
             e.preventDefault();
-            $(this).css('border-color', '#e9ecef');
+            $(this).css('border-color', '#d1d3e2');
             
             const files = e.originalEvent.dataTransfer.files;
             if (files.length > 0) {
-                $('#foto_pengantar')[0].files = files;
+                const file = files[0];
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Format File Tidak Valid',
+                        text: 'Harap pilih file gambar dengan format JPG, PNG, atau GIF.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                
+                // Validate file size (2MB max)
+                const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                if (file.size > maxSize) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ukuran File Terlalu Besar',
+                        text: 'Ukuran file maksimal adalah 2MB. Silakan pilih file yang lebih kecil.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                
+                // Create a FileList-like object and assign to input
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                $('#foto_pengantar')[0].files = dt.files;
                 $('#foto_pengantar').trigger('change');
             }
         });
@@ -477,19 +608,42 @@
             $(this).val(value);
         });
 
-        // Form submission with enhanced session tracking
+        // Form submission with base64 image encoding
         $('#escortForm').on('submit', function(e) {
             e.preventDefault();
             
             const submitBtn = $('#submitBtn');
-            const formData = new FormData(this);
+            
+            // Validate required image
+            if (!selectedImageBase64) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Foto Wajib Diisi',
+                    text: 'Silakan pilih foto pengantar terlebih dahulu.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            
+            // Prepare form data
+            const formData = {
+                kategori_pengantar: $('#kategori_pengantar').val(),
+                nama_pengantar: $('#nama_pengantar').val(),
+                jenis_kelamin: $('#jenis_kelamin').val(),
+                nomor_hp: $('#nomor_hp').val(),
+                plat_nomor: $('#plat_nomor').val(),
+                nama_pasien: $('#nama_pasien').val(),
+                foto_pengantar_base64: selectedImageBase64,
+                foto_pengantar_info: selectedImageInfo
+            };
             
             // Store form submission attempt in localStorage for tracking
             const submissionAttempt = {
                 timestamp: new Date().toISOString(),
-                category: $('#kategori_pengantar').val(),
-                name: $('#nama_pengantar').val(),
-                patient: $('#nama_pasien').val()
+                category: formData.kategori_pengantar,
+                name: formData.nama_pengantar,
+                patient: formData.nama_pasien,
+                image_size: selectedImageBase64 ? selectedImageBase64.length : 0
             };
             localStorage.setItem('lastSubmissionAttempt', JSON.stringify(submissionAttempt));
             
@@ -510,9 +664,9 @@
             $.ajax({
                 url: '/api/escort',
                 type: 'POST',
-                data: formData,
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
                 processData: false,
-                contentType: false,
                 success: function (response) {
                     submitBtn.removeClass('loading').prop('disabled', false);
                     
@@ -558,6 +712,10 @@
                         // Clear form validation states
                         $('.form-control, .form-select').removeClass('is-valid is-invalid');
                         
+                        // Reset image variables
+                        selectedImageBase64 = null;
+                        selectedImageInfo = null;
+                        
                         // Focus first input for next entry
                         $('#kategori_pengantar').focus();
                     });
@@ -566,7 +724,8 @@
                     console.log('Submission Statistics:', {
                         total_submissions: submissionCount + 1,
                         session_id: response.session_id,
-                        api_submissions_count: response.meta ? response.meta.api_submissions_count : null
+                        api_submissions_count: response.meta ? response.meta.api_submissions_count : null,
+                        image_encoded_size: formData.foto_pengantar_base64.length
                     });
                 },
                 error: function (xhr) {
