@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [EscortDataController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard', [EscortDataController::class, 'dashboard'])->name('dashboard');
     
+    // Escort status management
+    Route::patch('/escorts/{escort}/status', [EscortDataController::class, 'updateStatus'])->name('escorts.update-status');
+    
     // Admin utilities
     Route::post('/admin/clear-session-data', [EscortDataController::class, 'clearOldSessionData'])->name('admin.clear-session');
 });

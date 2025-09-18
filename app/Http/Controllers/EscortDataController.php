@@ -74,6 +74,12 @@ class EscortDataController extends Controller
             Session::put('last_gender_filter', $request->jenis_kelamin);
         }
         
+        // Handle filter by status with session persistence
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+            Session::put('last_status_filter', $request->status);
+        }
+        
         // Order by latest first
         $query->orderBy('created_at', 'desc');
         
@@ -88,6 +94,9 @@ class EscortDataController extends Controller
                 'today' => EscortModel::whereDate('created_at', today())->count(),
                 'this_week' => EscortModel::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
                 'this_month' => EscortModel::whereMonth('created_at', now()->month)->count(),
+                'pending' => EscortModel::where('status', 'pending')->count(),
+                'verified' => EscortModel::where('status', 'verified')->count(),
+                'rejected' => EscortModel::where('status', 'rejected')->count(),
             ];
         });
         
@@ -171,6 +180,7 @@ class EscortDataController extends Controller
             // Add submission tracking data
             $validatedData['submission_id'] = $submissionId;
             $validatedData['submitted_from_ip'] = $request->ip();
+            $validatedData['status'] = 'pending'; // Set default status
             
             // Create the escort record
             $escort = EscortModel::create($validatedData);
@@ -310,5 +320,52 @@ class EscortDataController extends Controller
         }
         
         return response()->json(['cleared' => $cleared]);
+    }
+    
+    /**
+     * Update escort status
+     */
+    public function updateStatus(Request $request, EscortModel $escort)
+    {
+        // Validate the request
+        $request->validate([
+            'status' => 'required|in:pending,verified,rejected'
+        ]);
+        
+        $oldStatus = $escort->status;
+        $newStatus = $request->status;
+        
+        // Update the escort status
+        $escort->update([
+            'status' => $newStatus
+        ]);
+        
+        // Clear cache
+        Cache::forget('escort_stats');
+        
+        // Log the status change
+        Log::info('Escort status updated', [
+            'escort_id' => $escort->id,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'updated_by' => auth()->user()->name ?? 'Unknown',
+            'ip' => $request->ip()
+        ]);
+        
+        // Store status change in session for tracking
+        Session::put("status_change_{$escort->id}", [
+            'changed_at' => now(),
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'changed_by' => auth()->user()->name ?? 'Unknown'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diperbarui',
+            'status' => $escort->status,
+            'status_display' => $escort->getStatusDisplayName(),
+            'badge_class' => $escort->getStatusBadgeClass()
+        ]);
     }
 }

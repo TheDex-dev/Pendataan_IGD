@@ -9,8 +9,10 @@
                 <th scope="col">No. HP</th>
                 <th scope="col">Plat Nomor</th>
                 <th scope="col">Nama Pasien</th>
+                <th scope="col">Status</th>
                 <th scope="col">Tanggal Dibuat</th>
                 <th scope="col">Foto</th>
+                <th scope="col">Aksi</th>
             </tr>
         </thead>
         <tbody>
@@ -37,6 +39,11 @@
                         <code>{{ $escort->plat_nomor }}</code>
                     </td>
                     <td>{{ $escort->nama_pasien }}</td>
+                    <td>
+                        <span class="badge status-badge-{{ $escort->id }} {{ $escort->getStatusBadgeClass() }}">
+                            {{ $escort->getStatusDisplayName() }}
+                        </span>
+                    </td>
                     <td>
                         <small>
                             {{ $escort->created_at->format('d/m/Y H:i') }}<br>
@@ -81,10 +88,44 @@
                             </span>
                         @endif
                     </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            @if($escort->status !== 'verified')
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-success btn-status-update" 
+                                        data-escort-id="{{ $escort->id }}" 
+                                        data-status="verified" 
+                                        data-status-text="Terverifikasi"
+                                        title="Verifikasi">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            @endif
+                            @if($escort->status !== 'rejected')
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger btn-status-update" 
+                                        data-escort-id="{{ $escort->id }}" 
+                                        data-status="rejected" 
+                                        data-status-text="Ditolak"
+                                        title="Tolak">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            @endif
+                            @if($escort->status !== 'pending')
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-warning btn-status-update" 
+                                        data-escort-id="{{ $escort->id }}" 
+                                        data-status="pending" 
+                                        data-status-text="Menunggu"
+                                        title="Kembalikan ke Menunggu">
+                                    <i class="fas fa-clock"></i>
+                                </button>
+                            @endif
+                        </div>
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" class="text-center py-4">
+                    <td colspan="11" class="text-center py-4">
                         <div class="text-muted">
                             <i class="fas fa-inbox fa-3x mb-3"></i>
                             <p class="mb-0">Tidak ada data escort yang ditemukan</p>

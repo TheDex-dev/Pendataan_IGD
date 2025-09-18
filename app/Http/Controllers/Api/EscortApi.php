@@ -31,6 +31,14 @@ class EscortApi extends Controller
                 $query->where('kategori_pengantar', $request->kategori);
             }
             
+            if ($request->has('status') && $request->status) {
+                $query->where('status', $request->status);
+            }
+            
+            if ($request->has('jenis_kelamin') && $request->jenis_kelamin) {
+                $query->where('jenis_kelamin', $request->jenis_kelamin);
+            }
+            
             if ($request->has('search') && $request->search) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
@@ -109,7 +117,8 @@ class EscortApi extends Controller
                 'nomor_hp' => 'required|string|max:20|min:10|regex:/^[0-9+\-\s]+$/',
                 'plat_nomor' => 'required|string|max:20|min:3',
                 'nama_pasien' => 'required|string|max:255|min:3',
-                'foto_pengantar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                'foto_pengantar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'status' => 'nullable|in:pending,verified,rejected'
             ], [
                 'nama_pengantar.required' => 'Nama pengantar wajib diisi.',
                 'nama_pengantar.min' => 'Nama pengantar minimal 3 karakter.',
@@ -122,6 +131,7 @@ class EscortApi extends Controller
                 'nama_pasien.min' => 'Nama pasien minimal 3 karakter.',
                 'foto_pengantar.image' => 'File harus berupa gambar.',
                 'foto_pengantar.max' => 'Ukuran foto maksimal 2MB.',
+                'status.in' => 'Status harus berupa pending, verified, atau rejected.',
             ]);
             
             // Handle file upload with session tracking
@@ -145,6 +155,11 @@ class EscortApi extends Controller
             $validatedData['submission_id'] = $submissionId;
             $validatedData['submitted_from_ip'] = $request->ip();
             $validatedData['api_submission'] = true;
+            
+            // Set default status if not provided
+            if (!isset($validatedData['status'])) {
+                $validatedData['status'] = 'pending';
+            }
             
             // Create escort record
             $escort = EscortModel::create($validatedData);
@@ -340,7 +355,8 @@ class EscortApi extends Controller
                 'nomor_hp' => 'sometimes|required|string|max:20|min:10',
                 'plat_nomor' => 'sometimes|required|string|max:20|min:3',
                 'nama_pasien' => 'sometimes|required|string|max:255|min:3',
-                'foto_pengantar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                'foto_pengantar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'status' => 'sometimes|required|in:pending,verified,rejected'
             ]);
             
             // Store original data for comparison
@@ -506,6 +522,126 @@ class EscortApi extends Controller
     }
     
     /**
+     * Update escort status with session tracking
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        DB::beginTransaction();
+        
+        try {
+            $escort = EscortModel::findOrFail($id);
+            
+            // Track status update attempt
+            $updateId = 'status_' . uniqid();
+            Session::put("api_status_update_{$updateId}_started", now());
+            Session::put("api_status_update_{$updateId}_escort_id", $id);
+            Session::put("api_status_update_{$updateId}_ip", $request->ip());
+            
+            // Validate the status
+            $request->validate([
+                'status' => 'required|in:pending,verified,rejected'
+            ]);
+            
+            $oldStatus = $escort->status;
+            $newStatus = $request->status;
+            
+            // Update the escort status
+            $escort->update([
+                'status' => $newStatus
+            ]);
+            
+            // Track successful status update
+            Session::put("api_status_update_{$updateId}_completed", now());
+            Session::put("api_status_update_{$updateId}_old_status", $oldStatus);
+            Session::put("api_status_update_{$updateId}_new_status", $newStatus);
+            Session::increment('api_status_updates_count');
+            
+            // Add to recent status updates in session
+            $recentStatusUpdates = Session::get('recent_status_updates', []);
+            array_unshift($recentStatusUpdates, [
+                'escort_id' => $escort->id,
+                'nama_pengantar' => $escort->nama_pengantar,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'updated_at' => now(),
+                'update_id' => $updateId,
+                'ip' => $request->ip()
+            ]);
+            
+            // Keep only last 20 status updates in session
+            $recentStatusUpdates = array_slice($recentStatusUpdates, 0, 20);
+            Session::put('recent_status_updates', $recentStatusUpdates);
+            
+            // Clear cache
+            Cache::forget('escort_stats');
+            
+            DB::commit();
+            
+            // Log the status change
+            Log::info('API Escort status updated', [
+                'update_id' => $updateId,
+                'escort_id' => $escort->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'ip' => $request->ip()
+            ]);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Status escort berhasil diperbarui',
+                'data' => [
+                    'escort_id' => $escort->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $newStatus,
+                    'status_display' => $escort->getStatusDisplayName(),
+                    'badge_class' => $escort->getStatusBadgeClass()
+                ],
+                'update_id' => $updateId,
+                'session_id' => Session::getId(),
+                'meta' => [
+                    'api_status_updates_count' => Session::get('api_status_updates_count', 0),
+                    'timestamp' => now()
+                ]
+            ], 200);
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollback();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data escort tidak ditemukan',
+                'session_id' => Session::getId()
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi status gagal',
+                'errors' => $e->errors(),
+                'session_id' => Session::getId()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            Log::error('API Status Update Error', [
+                'escort_id' => $id,
+                'error' => $e->getMessage(),
+                'session_id' => Session::getId()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memperbarui status escort',
+                'error' => $e->getMessage(),
+                'session_id' => Session::getId()
+            ], 500);
+        }
+    }
+
+    /**
      * Get session statistics and activity
      */
     public function getSessionStats()
@@ -517,6 +653,7 @@ class EscortApi extends Controller
                 'api_access_count' => Session::get('api_access_count', 0),
                 'api_submissions_count' => Session::get('api_submissions_count', 0),
                 'api_updates_count' => Session::get('api_updates_count', 0),
+                'api_status_updates_count' => Session::get('api_status_updates_count', 0),
                 'api_deletions_count' => Session::get('api_deletions_count', 0),
                 'api_failed_lookups' => Session::get('api_failed_lookups', 0),
                 'last_accessed' => Session::get('api_last_accessed'),
@@ -526,7 +663,8 @@ class EscortApi extends Controller
             'recent_activity' => [
                 'submissions' => Session::get('recent_api_submissions', []),
                 'viewed' => Session::get('recently_viewed_escorts', []),
-                'deleted' => Session::get('recently_deleted_escorts', [])
+                'deleted' => Session::get('recently_deleted_escorts', []),
+                'status_updates' => Session::get('recent_status_updates', [])
             ]
         ]);
     }
@@ -547,12 +685,18 @@ class EscortApi extends Controller
                 'this_month_submissions' => EscortModel::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
                     ->count(),
+                'pending_count' => EscortModel::where('status', 'pending')->count(),
+                'verified_count' => EscortModel::where('status', 'verified')->count(),
+                'rejected_count' => EscortModel::where('status', 'rejected')->count(),
                 'by_category' => EscortModel::selectRaw('kategori_pengantar, COUNT(*) as count')
                     ->groupBy('kategori_pengantar')
                     ->pluck('count', 'kategori_pengantar'),
+                'by_status' => EscortModel::selectRaw('status, COUNT(*) as count')
+                    ->groupBy('status')
+                    ->pluck('count', 'status'),
                 'recent_submissions' => EscortModel::latest()
                     ->limit(5)
-                    ->select('id', 'nama_pengantar', 'nama_pasien', 'kategori_pengantar', 'created_at')
+                    ->select('id', 'nama_pengantar', 'nama_pasien', 'kategori_pengantar', 'status', 'created_at')
                     ->get()
             ];
 
@@ -561,6 +705,7 @@ class EscortApi extends Controller
                 'session_id' => Session::getId(),
                 'api_access_count' => Session::get('api_access_count', 0),
                 'user_submissions' => Session::get('api_submissions_count', 0),
+                'status_updates' => Session::get('api_status_updates_count', 0),
                 'last_accessed' => Session::get('api_last_accessed')
             ];
 
@@ -582,4 +727,6 @@ class EscortApi extends Controller
             ], 500);
         }
     }
+
+    public 
 }

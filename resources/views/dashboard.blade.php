@@ -45,6 +45,36 @@
                 </div>
             </div>
         </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Menunggu</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pending-count">{{ $stats['pending'] }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Terverifikasi</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="verified-count">{{ $stats['verified'] }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Filters and Search -->
@@ -75,6 +105,15 @@
                             <option value="">Semua</option>
                             <option value="Laki-laki" {{ request('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
                             <option value="Perempuan" {{ request('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Semua Status</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
+                            <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Terverifikasi</option>
+                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                     </div>
                     <div class="col-md-3 mb-3 d-flex align-items-end">
@@ -145,6 +184,29 @@
     max-height: 600px;
     overflow-y: auto;
 }
+
+.badge-warning {
+    background-color: #f6c23e !important;
+    color: #1f2937 !important;
+}
+
+.badge-success {
+    background-color: #1cc88a !important;
+    color: white !important;
+}
+
+.badge-danger {
+    background-color: #e74a3b !important;
+    color: white !important;
+}
+
+.btn-status-update {
+    margin: 1px;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
 </style>
 </style>
 @endpush
@@ -168,7 +230,7 @@ $(document).ready(function() {
     });
     
     // Auto filter on select change
-    $('#kategori, #jenis_kelamin').on('change', function() {
+    $('#kategori, #jenis_kelamin, #status').on('change', function() {
         loadData();
     });
     
@@ -202,6 +264,8 @@ $(document).ready(function() {
                 // Update statistics
                 $('#total-count').text(response.stats.total);
                 $('#today-count').text(response.stats.today);
+                $('#pending-count').text(response.stats.pending);
+                $('#verified-count').text(response.stats.verified);
                 
                 $('#loading').addClass('d-none');
             },
@@ -211,79 +275,89 @@ $(document).ready(function() {
             }
         });
     }
-
-    }
-});    // Example: Load escorts via Sanctum API
-    function loadEscortsViaAPI(filters = {}) {
-        if (typeof sanctumAuth !== 'undefined' && sanctumAuth.authenticated) {
-            $('#loading').removeClass('d-none');
-            
-            sanctumAuth.getEscorts(filters)
-                .then(response => {
-                    console.log('Escorts from API:', response);
-                    $('#loading').addClass('d-none');
+    
+    // Status update functionality
+    $(document).on('click', '.btn-status-update', function(e) {
+        e.preventDefault();
+        
+        const escortId = $(this).data('escort-id');
+        const newStatus = $(this).data('status');
+        const statusText = $(this).data('status-text');
+        
+        // Show confirmation dialog
+        if (confirm(`Apakah Anda yakin ingin mengubah status menjadi "${statusText}"?`)) {
+            updateEscortStatus(escortId, newStatus, $(this));
+        }
+    });
+    
+    function updateEscortStatus(escortId, status, buttonElement) {
+        // Show loading state
+        const originalText = buttonElement.text();
+        buttonElement.prop('disabled', true).text('Loading...');
+        
+        $.ajax({
+            url: `/escorts/${escortId}/status`,
+            type: 'PATCH',
+            data: {
+                status: status,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update the status badge in the table
+                    const statusBadge = $(`.status-badge-${escortId}`);
+                    statusBadge.removeClass('badge-warning badge-success badge-danger')
+                            .addClass(response.badge_class)
+                            .text(response.status_display);
                     
-                    // You can process the API response here
-                    // For now, we'll just log it and show a success message
-                    if (response.data) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'API Data Loaded',
-                            text: `Loaded ${response.data.length} escorts via Sanctum API`,
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                })
-                .catch(error => {
-                    $('#loading').addClass('d-none');
-                    console.error('Failed to load escorts via API:', error);
+                    // Update statistics
+                    loadData();
                     
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'API Error',
-                        text: 'Failed to load data via API: ' + error.message
+                    // Show success message
+                    showAlert('success', response.message);
+                    
+                    // Update button states
+                    $(`.btn-status-update[data-escort-id="${escortId}"]`).each(function() {
+                        $(this).prop('disabled', false);
+                        if ($(this).data('status') === status) {
+                            $(this).addClass('btn-secondary').removeClass('btn-outline-success btn-outline-danger')
+                                   .prop('disabled', true);
+                        } else {
+                            $(this).removeClass('btn-secondary').prop('disabled', false);
+                        }
                     });
-                });
-        }
+                } else {
+                    showAlert('error', 'Gagal memperbarui status');
+                    buttonElement.prop('disabled', false).text(originalText);
+                }
+            },
+            error: function(xhr) {
+                console.error('Status update failed:', xhr);
+                showAlert('error', 'Terjadi kesalahan saat memperbarui status');
+                buttonElement.prop('disabled', false).text(originalText);
+            }
+        });
     }
-
-
-
-    // Function to check Sanctum authentication status
-    function checkSanctumStatus() {
-        if (typeof sanctumAuth !== 'undefined') {
-            sanctumAuth.checkAuthStatus()
-                .then(response => {
-                    const status = `
-                        <div class="alert alert-info">
-                            <h6>Sanctum Authentication Status:</h6>
-                            <ul class="mb-0">
-                                <li><strong>Authenticated:</strong> ${response.authenticated ? 'Yes' : 'No'}</li>
-                                <li><strong>User:</strong> ${response.user ? response.user.name + ' (' + response.user.email + ')' : 'Not logged in'}</li>
-                                <li><strong>CSRF Token:</strong> ${response.csrf_token ? 'Present' : 'Missing'}</li>
-                                <li><strong>Session ID:</strong> ${sanctumAuth.sessionId || 'N/A'}</li>
-                            </ul>
-                        </div>
-                    `;
-                    $('#api-status').html(status);
-                })
-                .catch(error => {
-                    const status = `
-                        <div class="alert alert-danger">
-                            <h6>Authentication Check Failed:</h6>
-                            <p class="mb-0">${error.message}</p>
-                        </div>
-                    `;
-                    $('#api-status').html(status);
-                });
-        } else {
-            $('#api-status').html(`
-                <div class="alert alert-warning">
-                    <p class="mb-0">Sanctum authentication helper not loaded.</p>
-                </div>
-            `);
-        }
+    
+    function showAlert(type, message) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        // Remove existing alerts
+        $('.alert').remove();
+        
+        // Add new alert at the top of the container
+        $('.container-fluid').prepend(alertHtml);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            $('.alert').fadeOut();
+        }, 5000);
     }
 });
 </script>

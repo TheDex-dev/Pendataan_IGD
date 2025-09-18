@@ -39,6 +39,9 @@ Route::get('/session-stats', [EscortApi::class, 'getSessionStats']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('escort', EscortApi::class)->except(['store']);
     
+    // Status management endpoint
+    Route::patch('/escort/{escort}/status', [EscortApi::class, 'updateStatus']);
+    
     // Additional protected endpoints
     Route::get('/dashboard/stats', [EscortApi::class, 'getDashboardStats']);
 });
