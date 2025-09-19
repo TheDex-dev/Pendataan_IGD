@@ -24,6 +24,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/form', [EscortDataController::class, 'index'])->name('form.index');
 Route::post('/form/submit', [EscortDataController::class, 'store'])->name('form.store');
 
+// QR Code generation route
+Route::get('/qr-code/form', [EscortDataController::class, 'generateFormQrCode'])->name('qr.form');
+
+// QR Code demo/test page
+Route::get('/qr-demo', function () {
+    $qrUrl = route('qr.form');
+    $formUrl = route('form.index');
+    return view('qr-demo', compact('qrUrl', 'formUrl'));
+})->name('qr.demo');
+
 // Session and submission tracking routes (public for form debugging)
 Route::get('/submission/{submissionId}', [EscortDataController::class, 'getSubmissionDetails'])->name('submission.details');
 

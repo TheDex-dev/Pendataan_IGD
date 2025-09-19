@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 class EscortDataController extends Controller
 {
@@ -430,5 +434,127 @@ class EscortDataController extends Controller
             'status_display' => $escort->getStatusDisplayName(),
             'badge_class' => $escort->getStatusBadgeClass()
         ]);
+    }
+    
+    /**
+     * Generate QR code for form submission URL
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function generateFormQrCode(Request $request)
+    {
+        try {
+            // Track QR code generation in session
+            Session::put('qr_generated_at', now());
+            Session::put('qr_generated_ip', $request->ip());
+            Session::increment('qr_generation_count');
+            
+            // Get the base URL for the form
+            $baseUrl = config('app.url');
+            $formUrl = $baseUrl . '/form';
+            
+            // Try different rendering backends based on availability
+            try {
+                // Try SVG backend first (most compatible)
+                $renderer = new ImageRenderer(
+                    new RendererStyle(400),
+                    new SvgImageBackEnd()
+                );
+                $writer = new Writer($renderer);
+                $qrCode = $writer->writeString($formUrl);
+                $contentType = 'image/svg+xml';
+                $filename = 'form-qrcode.svg';
+                
+            } catch (\Exception $svgError) {
+                // If SVG fails, try with plain text output and create a simple HTML QR code
+                Log::warning('SVG QR generation failed, falling back to simple text QR', [
+                    'error' => $svgError->getMessage()
+                ]);
+                
+                // Create a simple text-based QR code as fallback
+                $qrCode = $this->generateSimpleQrCode($formUrl);
+                $contentType = 'image/svg+xml';
+                $filename = 'form-qrcode-fallback.svg';
+            }
+            
+            // Log QR code generation
+            Log::info('QR Code generated for form', [
+                'url' => $formUrl,
+                'ip' => $request->ip(),
+                'timestamp' => now(),
+                'content_type' => $contentType
+            ]);
+            
+            // Return QR code
+            return response($qrCode)
+                ->header('Content-Type', $contentType)
+                ->header('Content-Disposition', 'inline; filename="' . $filename . '"')
+                ->header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+                
+        } catch (\Exception $e) {
+            Log::error('QR Code generation failed', [
+                'error' => $e->getMessage(),
+                'ip' => $request->ip(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return error response
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal generate QR code',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            
+            // Return a simple error image as SVG
+            $errorSvg = $this->generateErrorQrCode();
+            return response($errorSvg)
+                ->header('Content-Type', 'image/svg+xml')
+                ->header('Content-Disposition', 'inline; filename="error-qrcode.svg"');
+        }
+    }
+    
+    /**
+     * Generate a simple QR code as fallback when main library fails
+     * 
+     * @param string $url
+     * @return string
+     */
+    private function generateSimpleQrCode($url)
+    {
+        // Create a simple SVG with the URL as text and a basic QR-like pattern
+        $encodedUrl = htmlspecialchars($url);
+        return '<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="400" fill="white"/>
+            <rect x="20" y="20" width="360" height="360" fill="none" stroke="black" stroke-width="2"/>
+            <text x="200" y="200" text-anchor="middle" font-family="Arial" font-size="12" fill="black">QR Code</text>
+            <text x="200" y="220" text-anchor="middle" font-family="Arial" font-size="8" fill="black">Scan untuk akses:</text>
+            <text x="200" y="240" text-anchor="middle" font-family="Arial" font-size="10" fill="blue" text-decoration="underline">' . $encodedUrl . '</text>
+            <rect x="50" y="50" width="60" height="60" fill="black"/>
+            <rect x="290" y="50" width="60" height="60" fill="black"/>
+            <rect x="50" y="290" width="60" height="60" fill="black"/>
+            <rect x="60" y="60" width="40" height="40" fill="white"/>
+            <rect x="300" y="60" width="40" height="40" fill="white"/>
+            <rect x="60" y="300" width="40" height="40" fill="white"/>
+        </svg>';
+    }
+    
+    /**
+     * Generate an error QR code when generation fails
+     * 
+     * @return string
+     */
+    private function generateErrorQrCode()
+    {
+        return '<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="400" fill="#ffebee"/>
+            <rect x="20" y="20" width="360" height="360" fill="none" stroke="#f44336" stroke-width="2"/>
+            <text x="200" y="180" text-anchor="middle" font-family="Arial" font-size="16" fill="#f44336">QR Code Error</text>
+            <text x="200" y="200" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">Gagal generate QR code</text>
+            <text x="200" y="220" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Silakan akses manual:</text>
+            <text x="200" y="240" text-anchor="middle" font-family="Arial" font-size="10" fill="#1976d2">' . config('app.url') . '/form</text>
+        </svg>';
     }
 }

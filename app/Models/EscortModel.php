@@ -75,4 +75,40 @@ class EscortModel extends Model
             default => 'Unknown'
         };
     }
+    
+    // Check if escort has image
+    public function hasImage()
+    {
+        return !empty($this->foto_pengantar);
+    }
+    
+    // Get image storage URL
+    public function getImageUrl()
+    {
+        if (!$this->hasImage()) {
+            return null;
+        }
+        
+        return \Illuminate\Support\Facades\Storage::url($this->foto_pengantar);
+    }
+    
+    // Get image storage path
+    public function getImagePath()
+    {
+        if (!$this->hasImage()) {
+            return null;
+        }
+        
+        return storage_path('app/public/' . $this->foto_pengantar);
+    }
+    
+    // Check if image file exists in storage
+    public function imageExists()
+    {
+        if (!$this->hasImage()) {
+            return false;
+        }
+        
+        return \Illuminate\Support\Facades\Storage::exists('public/' . $this->foto_pengantar);
+    }
 }

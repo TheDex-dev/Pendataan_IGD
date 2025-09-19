@@ -35,12 +35,19 @@ Route::apiResource('escort', EscortApi::class)->only(['store']);
 // Session stats endpoint (public for monitoring)
 Route::get('/session-stats', [EscortApi::class, 'getSessionStats']);
 
+// QR Code generation endpoint (public for easier access)
+Route::get('/qr-code/form', [\App\Http\Controllers\EscortDataController::class, 'generateFormQrCode']);
+
 // Protected API routes - require authentication (IGD Staff only)
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('escort', EscortApi::class)->except(['store']);
     
     // Status management endpoint
     Route::patch('/escort/{escort}/status', [EscortApi::class, 'updateStatus']);
+    
+    // Base64 image endpoints
+    Route::get('/escort/{escort}/image/base64', [EscortApi::class, 'getImageBase64']);
+    Route::post('/escort/{escort}/image/base64', [EscortApi::class, 'uploadImageBase64']);
     
     // Additional protected endpoints
     Route::get('/dashboard/stats', [EscortApi::class, 'getDashboardStats']);

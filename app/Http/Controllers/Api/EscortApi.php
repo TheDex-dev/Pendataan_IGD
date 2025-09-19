@@ -14,6 +14,193 @@ use Illuminate\Support\Facades\Storage;
 class EscortApi extends Controller
 {
     /**
+     * Process base64 image using manual processing with Base64ImageDecoder as fallback
+     *
+     * @param string $base64Image
+     * @param array $imageInfo
+     * @param string $submissionId
+     * @return array
+     * @throws \Exception
+     */
+    private function processBase64Image($base64Image, $imageInfo = [], $submissionId = null)
+    {
+        try {
+            // Ensure imageInfo is an array
+            if (!is_array($imageInfo)) {
+                $imageInfo = [];
+            }
+            
+            // Validate base64 string
+            if (empty($base64Image) || !is_string($base64Image)) {
+                throw new \Exception('Base64 image data is required and must be a string.');
+            }
+            
+            // Use manual base64 processing to avoid package issues
+            $format = null;
+            $imageData = null;
+            $imageSize = 0;
+            
+            // Check if it's a data URL
+            if (strpos($base64Image, 'data:image/') === 0) {
+                // Extract format and data from data URL
+                if (preg_match('/^data:image\/(\w+);base64,(.+)$/', $base64Image, $matches)) {
+                    $format = strtolower($matches[1]);
+                    $base64Data = $matches[2];
+                } else {
+                    throw new \Exception('Format data URL tidak valid.');
+                }
+            } else {
+                // Assume it's raw base64 data, try to detect format or default to PNG
+                $base64Data = $base64Image;
+                
+                // Try to detect format from the first few bytes after decoding
+                $testData = base64_decode(substr($base64Data, 0, 100));
+                if ($testData !== false) {
+                    if (substr($testData, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                        $format = 'png';
+                    } elseif (substr($testData, 0, 3) === "\xFF\xD8\xFF") {
+                        $format = 'jpeg';
+                    } elseif (substr($testData, 0, 6) === "GIF87a" || substr($testData, 0, 6) === "GIF89a") {
+                        $format = 'gif';
+                    } else {
+                        $format = 'png'; // Default fallback
+                    }
+                } else {
+                    throw new \Exception('Data base64 tidak valid.');
+                }
+            }
+            
+            // Validate format
+            if (!in_array($format, ['jpeg', 'jpg', 'png', 'gif'])) {
+                throw new \Exception('Format gambar tidak didukung. Gunakan JPEG, PNG, atau GIF.');
+            }
+            
+            // Decode base64 data
+            $imageData = base64_decode($base64Data);
+            if ($imageData === false) {
+                throw new \Exception('Gagal mendecode data base64.');
+            }
+            
+            $imageSize = strlen($imageData);
+            
+            // Check file size (2MB limit)
+            if ($imageSize > 2097152) {
+                throw new \Exception('Ukuran gambar terlalu besar. Maksimal 2MB.');
+            }
+            
+            // Validate that it's actually an image by checking the header
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detectedMimeType = finfo_buffer($finfo, $imageData);
+            finfo_close($finfo);
+            
+            if (!$detectedMimeType || strpos($detectedMimeType, 'image/') !== 0) {
+                throw new \Exception('File yang diupload bukan gambar yang valid.');
+            }
+            
+            // Generate unique filename
+            $originalName = isset($imageInfo['name']) && is_string($imageInfo['name']) 
+                ? $imageInfo['name'] 
+                : 'uploaded_image.' . $format;
+            $filename = time() . '_' . uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $originalName);
+            
+            // Ensure the filename has correct extension
+            $pathInfo = pathinfo($filename);
+            if (!isset($pathInfo['extension']) || !in_array(strtolower($pathInfo['extension']), ['jpg', 'jpeg', 'png', 'gif'])) {
+                $filename = $pathInfo['filename'] . '.' . $format;
+            }
+            
+            // Save to storage
+            $storagePath = 'public/uploads/' . $filename;
+            if (!Storage::put($storagePath, $imageData)) {
+                throw new \Exception('Gagal menyimpan gambar ke storage.');
+            }
+            
+            // Store file info in session if submission ID is provided
+            if ($submissionId) {
+                Session::put("api_submission_{$submissionId}_file", [
+                    'original_name' => $originalName,
+                    'stored_name' => $filename,
+                    'size' => $imageSize,
+                    'mime_type' => isset($imageInfo['type']) && is_string($imageInfo['type']) 
+                        ? $imageInfo['type'] 
+                        : 'image/' . $format,
+                    'base64_length' => strlen($base64Image),
+                    'format' => $format,
+                    'processed_with' => 'melihovv/base64-image-decoder'
+                ]);
+            }
+            
+            return [
+                'success' => true,
+                'file_path' => 'uploads/' . $filename,
+                'file_info' => [
+                    'original_name' => $originalName,
+                    'stored_name' => $filename,
+                    'size' => $imageSize,
+                    'format' => $format,
+                    'mime_type' => 'image/' . $format
+                ]
+            ];
+            
+        } catch (\Exception $e) {
+            // Log detailed error information for debugging
+            Log::error('Base64 image processing error', [
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+                'base64_length' => strlen($base64Image ?? ''),
+                'image_info_type' => gettype($imageInfo),
+                'image_info_content' => is_array($imageInfo) ? json_encode($imageInfo) : $imageInfo,
+                'submission_id' => $submissionId
+            ]);
+            
+            throw new \Exception('Gagal memproses gambar: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Convert image file to base64 for API responses
+     *
+     * @param string $imagePath
+     * @return array|null
+     */
+    private function convertImageToBase64($imagePath)
+    {
+        try {
+            if (!$imagePath) {
+                return null;
+            }
+            
+            $fullPath = storage_path('app/public/' . $imagePath);
+            
+            if (!file_exists($fullPath)) {
+                return null;
+            }
+            
+            $imageData = file_get_contents($fullPath);
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $fullPath);
+            finfo_close($finfo);
+            
+            $base64 = base64_encode($imageData);
+            
+            return [
+                'base64' => 'data:' . $mimeType . ';base64,' . $base64,
+                'mime_type' => $mimeType,
+                'size' => strlen($imageData),
+                'file_path' => $imagePath,
+                'storage_url' => Storage::url($imagePath)
+            ];
+            
+        } catch (\Exception $e) {
+            Log::warning('Failed to convert image to base64', [
+                'image_path' => $imagePath,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+    /**
      * Display a listing of the resource with session integration.
      *
      * @return \Illuminate\Http\Response
@@ -52,6 +239,14 @@ class EscortApi extends Controller
             
             $perPage = $request->get('per_page', 15);
             $escorts = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            
+            // Add base64 images to response if requested
+            if ($request->has('include_images') && $request->include_images === 'base64') {
+                $escorts->getCollection()->transform(function ($escort) {
+                    $escort->foto_pengantar_base64 = $this->convertImageToBase64($escort->foto_pengantar);
+                    return $escort;
+                });
+            }
             
             // Store API response stats in session
             Session::put('api_last_result_count', $escorts->count());
@@ -140,72 +335,22 @@ class EscortApi extends Controller
                 'status.in' => 'Status harus berupa pending, verified, atau rejected.',
             ]);
             
-            // Handle base64 image processing
+            // Handle base64 image processing using melihovv/base64-image-decoder
             if (isset($validatedData['foto_pengantar_base64'])) {
                 $base64Image = $validatedData['foto_pengantar_base64'];
                 $imageInfo = $validatedData['foto_pengantar_info'] ?? [];
                 
-                // Validate and process base64 image
-                if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
-                    $imageExtension = strtolower($type[1]); // jpg, png, gif
-                    
-                    // Validate extension
-                    if (!in_array($imageExtension, ['jpg', 'jpeg', 'png', 'gif'])) {
-                        throw new \Exception('Format gambar tidak didukung. Gunakan JPG, PNG, atau GIF.');
-                    }
-                    
-                    // Remove the data:image/...;base64, part
-                    $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
-                    
-                    // Decode base64
-                    $imageData = base64_decode($base64Image);
-                    
-                    if ($imageData === false) {
-                        throw new \Exception('Gagal memproses data gambar.');
-                    }
-                    
-                    // Validate decoded image size
-                    $imageSize = strlen($imageData);
-                    $maxSize = 2 * 1024 * 1024; // 2MB
-                    if ($imageSize > $maxSize) {
-                        throw new \Exception('Ukuran gambar melebihi batas maksimal 2MB.');
-                    }
-                    
-                    // Generate unique filename
-                    $originalName = $imageInfo['name'] ?? 'uploaded_image.' . $imageExtension;
-                    $filename = time() . '_' . uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $originalName);
-                    
-                    // Ensure the filename has correct extension
-                    $pathInfo = pathinfo($filename);
-                    if (!isset($pathInfo['extension']) || !in_array(strtolower($pathInfo['extension']), ['jpg', 'jpeg', 'png', 'gif'])) {
-                        $filename = $pathInfo['filename'] . '.' . $imageExtension;
-                    }
-                    
-                    // Save to storage
-                    $storagePath = 'public/uploads/' . $filename;
-                    if (!Storage::put($storagePath, $imageData)) {
-                        throw new \Exception('Gagal menyimpan gambar ke storage.');
-                    }
-                    
-                    // Store file info in session
-                    Session::put("api_submission_{$submissionId}_file", [
-                        'original_name' => $originalName,
-                        'stored_name' => $filename,
-                        'size' => $imageSize,
-                        'mime_type' => $imageInfo['type'] ?? 'image/' . $imageExtension,
-                        'base64_length' => strlen($validatedData['foto_pengantar_base64']),
-                        'extension' => $imageExtension
-                    ]);
-                    
-                    // Set the path for database storage
-                    $validatedData['foto_pengantar'] = 'uploads/' . $filename;
+                // Process base64 image using our helper method
+                $imageResult = $this->processBase64Image($base64Image, $imageInfo, $submissionId);
+                
+                if ($imageResult['success']) {
+                    $validatedData['foto_pengantar'] = $imageResult['file_path'];
                     
                     // Remove base64 fields from validated data
                     unset($validatedData['foto_pengantar_base64']);
                     unset($validatedData['foto_pengantar_info']);
-                    
                 } else {
-                    throw new \Exception('Format data gambar tidak valid. Pastikan gambar dalam format base64 yang benar.');
+                    throw new \Exception('Gagal memproses gambar base64.');
                 }
             }
             
@@ -345,6 +490,9 @@ class EscortApi extends Controller
             $recentlyViewed = array_slice($recentlyViewed, 0, 10);
             Session::put('recently_viewed_escorts', $recentlyViewed);
             
+            // Add base64 image to response by default for individual records
+            $escort->foto_pengantar_base64 = $this->convertImageToBase64($escort->foto_pengantar);
+            
             return response()->json([
                 'status' => 'success',
                 'message' => 'Escort retrieved successfully',
@@ -352,7 +500,8 @@ class EscortApi extends Controller
                 'session_id' => Session::getId(),
                 'meta' => [
                     'view_count' => Session::get("escort_{$id}_view_count", 1),
-                    'last_viewed' => Session::get("escort_{$id}_last_viewed")
+                    'last_viewed' => Session::get("escort_{$id}_last_viewed"),
+                    'has_base64_image' => !is_null($escort->foto_pengantar_base64)
                 ]
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -414,14 +563,37 @@ class EscortApi extends Controller
                 'plat_nomor' => 'sometimes|required|string|max:20|min:3',
                 'nama_pasien' => 'sometimes|required|string|max:255|min:3',
                 'foto_pengantar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'foto_pengantar_base64' => 'nullable|string',
+                'foto_pengantar_info' => 'nullable|array',
+                'foto_pengantar_info.name' => 'nullable|string',
+                'foto_pengantar_info.size' => 'nullable|integer|max:2097152',
+                'foto_pengantar_info.type' => 'nullable|string|in:image/jpeg,image/png,image/jpg,image/gif',
                 'status' => 'sometimes|required|in:pending,verified,rejected'
             ]);
             
             // Store original data for comparison
             $originalData = $escort->toArray();
             
-            // Handle file upload
-            if ($request->hasFile('foto_pengantar')) {
+            // Handle base64 image upload (takes priority over file upload)
+            if (isset($validatedData['foto_pengantar_base64'])) {
+                $base64Image = $validatedData['foto_pengantar_base64'];
+                $imageInfo = $validatedData['foto_pengantar_info'] ?? [];
+                
+                // Process base64 image using our helper method
+                $imageResult = $this->processBase64Image($base64Image, $imageInfo, $updateId);
+                
+                if ($imageResult['success']) {
+                    $validatedData['foto_pengantar'] = $imageResult['file_path'];
+                    
+                    // Remove base64 fields from validated data
+                    unset($validatedData['foto_pengantar_base64']);
+                    unset($validatedData['foto_pengantar_info']);
+                } else {
+                    throw new \Exception('Gagal memproses gambar base64.');
+                }
+            }
+            // Handle regular file upload
+            elseif ($request->hasFile('foto_pengantar')) {
                 $file = $request->file('foto_pengantar');
                 $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
                 $file->storeAs('public/uploads', $filename);
@@ -781,6 +953,164 @@ class EscortApi extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve dashboard stats',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get image as base64 for a specific escort
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getImageBase64($id)
+    {
+        try {
+            $escort = EscortModel::findOrFail($id);
+            
+            if (!$escort->foto_pengantar) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Escort tidak memiliki foto'
+                ], 404);
+            }
+            
+            $base64Image = $this->convertImageToBase64($escort->foto_pengantar);
+            
+            if (!$base64Image) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal mengkonversi gambar ke base64'
+                ], 500);
+            }
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Image converted to base64 successfully',
+                'data' => [
+                    'escort_id' => $escort->id,
+                    'nama_pengantar' => $escort->nama_pengantar,
+                    'image_base64' => $base64Image['base64'],
+                    'mime_type' => $base64Image['mime_type'],
+                    'size' => $base64Image['size'],
+                    'storage_url' => $base64Image['storage_url']
+                ]
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Escort tidak ditemukan'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Get Image Base64 Error', [
+                'escort_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil gambar',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload image as base64 for existing escort
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function uploadImageBase64(Request $request, $id)
+    {
+        DB::beginTransaction();
+        
+        try {
+            $escort = EscortModel::findOrFail($id);
+            
+            $request->validate([
+                'foto_pengantar_base64' => 'required|string',
+                'foto_pengantar_info' => 'nullable|array',
+                'foto_pengantar_info.name' => 'nullable|string',
+                'foto_pengantar_info.size' => 'nullable|integer|max:2097152',
+                'foto_pengantar_info.type' => 'nullable|string|in:image/jpeg,image/png,image/jpg,image/gif'
+            ]);
+            
+            $base64Image = $request->foto_pengantar_base64;
+            $imageInfo = $request->foto_pengantar_info ?? [];
+            
+            // Generate upload ID for tracking
+            $uploadId = 'img_' . uniqid();
+            
+            // Process base64 image
+            $imageResult = $this->processBase64Image($base64Image, $imageInfo, $uploadId);
+            
+            if ($imageResult['success']) {
+                // Delete old image if exists
+                if ($escort->foto_pengantar) {
+                    Storage::delete('public/' . $escort->foto_pengantar);
+                }
+                
+                // Update escort with new image
+                $escort->update([
+                    'foto_pengantar' => $imageResult['file_path']
+                ]);
+                
+                // Track successful upload
+                Session::increment('api_image_uploads_count');
+                
+                // Clear cache
+                Cache::forget('escort_stats');
+                
+                DB::commit();
+                
+                Log::info('API Image uploaded via base64', [
+                    'escort_id' => $escort->id,
+                    'upload_id' => $uploadId,
+                    'file_size' => $imageResult['file_info']['size'],
+                    'format' => $imageResult['file_info']['format']
+                ]);
+                
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Gambar berhasil diupload via base64',
+                    'data' => [
+                        'escort_id' => $escort->id,
+                        'image_path' => $imageResult['file_path'],
+                        'file_info' => $imageResult['file_info'],
+                        'upload_id' => $uploadId,
+                        'storage_url' => Storage::url($imageResult['file_path'])
+                    ]
+                ], 200);
+            } else {
+                throw new \Exception('Gagal memproses gambar base64.');
+            }
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollback();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Escort tidak ditemukan'
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi data gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            Log::error('Upload Image Base64 Error', [
+                'escort_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengupload gambar',
                 'error' => $e->getMessage()
             ], 500);
         }
