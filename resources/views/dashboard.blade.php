@@ -1,6 +1,40 @@
 @extends('layout.app')
 
-@section('title', 'Dashboard - Pendataan IGD')
+@section('title', 'Dashboard IGD')
+
+@push('styles')
+<style>
+    /* Custom styles for SweetAlert2 popups */
+    .swal-wide {
+        width: 600px !important;
+        max-width: 90% !important;
+    }
+    
+    .swal2-popup .table {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+    
+    .swal2-popup .table td {
+        padding: 0.4rem;
+        vertical-align: middle;
+    }
+    
+    .swal2-popup .table td:first-child {
+        width: 35%;
+        color: #6c757d;
+    }
+    
+    .text-left {
+        text-align: left !important;
+    }
+    
+    .swal2-popup .alert {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+</style>
+@endpush
 
 @section('content')
 <div class="container-fluid">
@@ -8,68 +42,68 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h3 mb-0">Dashboard Pendataan IGD</h1>
+                <h1 class="h2 mb-0">Dashboard Pendataan IGD</h1>
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Escort</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-count">{{ $stats['total'] }}</div>
+    <div class="row mb-4 g-3">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-gradient-primary text-white shadow-sm rounded-4 border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="fas fa-users fa-2x text-white"></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Hari Ini</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="today-count">{{ $stats['today'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                        <div class="ms-3">
+                            <h6 class="card-title mb-1 text-white-50">Total Pengantar</h6>
+                            <h2 class="mb-0 fw-bold" id="total-count">{{ $stats['total'] }}</h2>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Menunggu</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pending-count">{{ $stats['pending'] }}</div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-gradient-info text-white shadow-sm rounded-4 border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="fas fa-calendar-day fa-2x text-white"></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        <div class="ms-3">
+                            <h6 class="card-title mb-1 text-white-50">Hari Ini</h6>
+                            <h2 class="mb-0 fw-bold" id="today-count">{{ $stats['today'] }}</h2>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Terverifikasi</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="verified-count">{{ $stats['verified'] }}</div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-gradient-warning text-white shadow-sm rounded-4 border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="fas fa-clock fa-2x text-white"></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        <div class="ms-3">
+                            <h6 class="card-title mb-1 text-white-50">Menunggu</h6>
+                            <h2 class="mb-0 fw-bold" id="pending-count">{{ $stats['pending'] }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-gradient-success text-white shadow-sm rounded-4 border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="fas fa-check-circle fa-2x text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="card-title mb-1 text-white-50">Terverifikasi</h6>
+                            <h2 class="mb-0 fw-bold" id="verified-count">{{ $stats['verified'] }}</h2>
                         </div>
                     </div>
                 </div>
@@ -80,7 +114,7 @@
     <!-- Filters and Search -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filter & Pencarian</h6>
+            <h6 class="m-0 font-weight-bold text-success">Filter & Pencarian</h6>
         </div>
         <div class="card-body">
             <form id="filter-form">
@@ -121,7 +155,7 @@
                             <i class="fas fa-search"></i> Cari
                         </button>
                         <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-                            <i class="fas fa-refresh"></i> Reset
+                            <i class="fas fa-refresh"></i> Refresh
                         </a>
                     </div>
                 </div>
@@ -132,7 +166,7 @@
     <!-- Data Table -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Escort</h6>
+            <h6 class="m-0 font-weight-bold text-success">Data Escort</h6>
         </div>
         <div class="card-body">
             <div id="table-container">
@@ -214,6 +248,9 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Load initial data
+    loadData();
+
     // AJAX form submission
     $('#filter-form').on('submit', function(e) {
         e.preventDefault();
@@ -276,24 +313,111 @@ $(document).ready(function() {
         });
     }
     
-    // Status update functionality
+    // Status update functionality with SweetAlert2
     $(document).on('click', '.btn-status-update', function(e) {
         e.preventDefault();
         
         const escortId = $(this).data('escort-id');
         const newStatus = $(this).data('status');
         const statusText = $(this).data('status-text');
+        const buttonElement = $(this);
         
-        // Show confirmation dialog
-        if (confirm(`Apakah Anda yakin ingin mengubah status menjadi "${statusText}"?`)) {
-            updateEscortStatus(escortId, newStatus, $(this));
-        }
+            // Get escort data from the table row
+        const row = buttonElement.closest('tr');
+        const escortData = {
+            kategori_pengantar: row.find('td:nth-child(2) span.kategori-badge').text().trim(),
+            nama_pengantar: row.find('td:nth-child(3)').text().trim(),
+            jenis_kelamin: row.find('td:nth-child(4)').text().trim(),
+            nomor_hp: row.find('td:nth-child(5)').text().trim(),
+            plat_nomor: row.find('td:nth-child(6)').text().trim(),
+            nama_pasien: row.find('td:nth-child(7)').text().trim(),
+            waktu_masuk: row.find('td:nth-child(9)').text().trim()
+        };        // Determine color and icon based on status
+        const statusConfig = {
+            'verified': {
+                confirmButtonColor: '#28a745',
+                icon: 'success',
+                title: 'Verifikasi Pengantar'
+            },
+            'rejected': {
+                confirmButtonColor: '#dc3545',
+                icon: 'warning',
+                title: 'Tolak Pengantar'
+            },
+            'pending': {
+                confirmButtonColor: '#ffc107',
+                icon: 'question',
+                title: 'Kembalikan ke Menunggu'
+            }
+        };
+        
+        // Show SweetAlert2 confirmation dialog with escort details
+        Swal.fire({
+            title: statusConfig[newStatus].title,
+            html: `
+                <div class="text-left">
+                    <h6 class="mb-3">Detail Pengantar:</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Nama Pengantar</strong></td>
+                            <td>: ${escortData.nama_pengantar}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kategori</strong></td>
+                            <td>: ${escortData.kategori_pengantar}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>No. HP</strong></td>
+                            <td>: ${escortData.nomor_hp}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Plat Nomor</strong></td>
+                            <td>: ${escortData.plat_nomor}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nama Pasien</strong></td>
+                            <td>: ${escortData.nama_pasien}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Waktu Masuk</strong></td>
+                            <td>: ${escortData.waktu_masuk}</td>
+                        </tr>
+                    </table>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> Apakah Anda yakin ingin mengubah status menjadi <strong>"${statusText}"</strong>?
+                    </div>
+                </div>
+            `,
+            icon: statusConfig[newStatus].icon,
+            showCancelButton: true,
+            confirmButtonColor: statusConfig[newStatus].confirmButtonColor,
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Ubah Status',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: {
+                popup: 'swal-wide',
+                content: 'text-left'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updateEscortStatus(escortId, newStatus, buttonElement);
+            }
+        });
     });
     
     function updateEscortStatus(escortId, status, buttonElement) {
-        // Show loading state
-        const originalText = buttonElement.text();
-        buttonElement.prop('disabled', true).text('Loading...');
+        // Show loading state with SweetAlert2
+        Swal.fire({
+            title: 'Memproses...',
+            text: 'Mohon tunggu sebentar',
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
         
         $.ajax({
             url: `/escorts/${escortId}/status`,
@@ -313,8 +437,14 @@ $(document).ready(function() {
                     // Update statistics
                     loadData();
                     
-                    // Show success message
-                    showAlert('success', response.message);
+                    // Show success message with SweetAlert2
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
                     
                     // Update button states
                     $(`.btn-status-update[data-escort-id="${escortId}"]`).each(function() {
@@ -327,14 +457,22 @@ $(document).ready(function() {
                         }
                     });
                 } else {
-                    showAlert('error', 'Gagal memperbarui status');
-                    buttonElement.prop('disabled', false).text(originalText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Gagal memperbarui status',
+                        confirmButtonColor: '#dc3545'
+                    });
                 }
             },
             error: function(xhr) {
                 console.error('Status update failed:', xhr);
-                showAlert('error', 'Terjadi kesalahan saat memperbarui status');
-                buttonElement.prop('disabled', false).text(originalText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    text: 'Gagal memperbarui status pengantar. Silakan coba lagi.',
+                    confirmButtonColor: '#dc3545'
+                });
             }
         });
     }
