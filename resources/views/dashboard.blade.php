@@ -154,9 +154,12 @@
                         <button type="submit" class="btn btn-primary me-2">
                             <i class="fas fa-search"></i> Cari
                         </button>
-                        <a href="{{ route('dashboard') }}" class="btn btn-secondary">
+                        <a href="{{ route('dashboard') }}" class="btn btn-secondary me-2">
                             <i class="fas fa-refresh"></i> Refresh
                         </a>
+                        <button type="button" id="view-all-btn" class="btn btn-info me-2">
+                            <i class="fas fa-list"></i> Lihat Semua
+                        </button>
                     </div>
                 </div>
             </form>
@@ -271,6 +274,41 @@ $(document).ready(function() {
         loadData();
     });
     
+    // View All button handler
+    $('#view-all-btn').on('click', function(e) {
+        e.preventDefault();
+        
+        // Show confirmation dialog with SweetAlert2
+        Swal.fire({
+            title: 'Lihat Semua Data',
+            html: `
+                <div class="text-left">
+                    <p>Anda akan melihat semua data escort dengan batas maksimal <strong>5000 record</strong>.</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Perhatian:</strong> Memuat data dalam jumlah besar dapat memerlukan waktu loading yang lebih lama.
+                    </div>
+                    <p>Apakah Anda yakin ingin melanjutkan?</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#17a2b8',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Lihat Semua',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: {
+                popup: 'swal-wide',
+                content: 'text-left'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                loadAllData();
+            }
+        });
+    });
+    
     // Pagination click handler
     $(document).on('click', '.pagination a', function(e) {
         e.preventDefault();
@@ -283,6 +321,72 @@ $(document).ready(function() {
     function loadData() {
         let formData = $('#filter-form').serialize();
         loadDataFromUrl('{{ route("dashboard") }}?' + formData);
+    }
+    
+    function loadAllData() {
+        // Show loading with progress indication
+        Swal.fire({
+            title: 'Memuat Semua Data...',
+            html: `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang memuat data, mohon tunggu...</p>
+                    <small class="text-muted">Proses ini mungkin memerlukan beberapa detik</small>
+                </div>
+            `,
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        let formData = $('#filter-form').serialize();
+        let url = '{{ route("dashboard") }}?' + formData + '&view_all=true';
+        
+        $.ajax({
+            url: url,
+            type: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                $('#table-container').html(response.html);
+                $('#pagination-container').html(response.pagination);
+                
+                // Update statistics
+                $('#total-count').text(response.stats.total);
+                $('#today-count').text(response.stats.today);
+                $('#pending-count').text(response.stats.pending);
+                $('#verified-count').text(response.stats.verified);
+                
+                // Show success message with record count
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Data Berhasil Dimuat!',
+                    html: `
+                        <div class="text-center">
+                            <p>Menampilkan <strong>${response.record_count || 'semua'}</strong> record data escort</p>
+                            ${response.is_limited ? '<small class="text-warning">Data dibatasi maksimal 5000 record untuk performa optimal</small>' : ''}
+                        </div>
+                    `,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            error: function(xhr) {
+                console.error('Load all data failed:', xhr);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Data',
+                    text: 'Terjadi kesalahan saat memuat semua data. Silakan coba lagi.',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        });
     }
     
     function loadDataFromUrl(url) {

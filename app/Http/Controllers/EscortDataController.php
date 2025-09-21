@@ -87,9 +87,48 @@ class EscortDataController extends Controller
         // Order by latest first
         $query->orderBy('created_at', 'desc');
         
-        // Get page size from session or default
-        $pageSize = Session::get('dashboard_page_size', 15);
-        $escorts = $query->paginate($pageSize)->appends($request->query());
+        // Handle view_all parameter with safety limit
+        $isViewAll = $request->has('view_all') && $request->view_all == 'true';
+        $recordCount = 0;
+        $isLimited = false;
+        
+        if ($isViewAll) {
+            // Safety limit to prevent performance issues
+            $totalRecords = $query->count();
+            $safetyLimit = 5000;
+            
+            if ($totalRecords > $safetyLimit) {
+                $escorts = $query->limit($safetyLimit)->get();
+                $recordCount = $safetyLimit;
+                $isLimited = true;
+                
+                // Log when safety limit is applied
+                Log::info('View all data limited to safety threshold', [
+                    'total_records' => $totalRecords,
+                    'safety_limit' => $safetyLimit,
+                    'ip' => $request->ip(),
+                    'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status'])
+                ]);
+            } else {
+                $escorts = $query->get();
+                $recordCount = $totalRecords;
+                $isLimited = false;
+            }
+            
+            // Store view_all request in session for tracking
+            Session::put('last_view_all_request', [
+                'timestamp' => now(),
+                'record_count' => $recordCount,
+                'is_limited' => $isLimited,
+                'total_available' => $totalRecords,
+                'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status'])
+            ]);
+            
+        } else {
+            // Get page size from session or default
+            $pageSize = Session::get('dashboard_page_size', 15);
+            $escorts = $query->paginate($pageSize)->appends($request->query());
+        }
         
         // Get cached or fresh statistics
         $stats = Cache::remember('escort_stats', 300, function() {
@@ -110,17 +149,30 @@ class EscortDataController extends Controller
             Session::put('last_ajax_request', [
                 'timestamp' => now(),
                 'filters' => $request->all(),
-                'results_count' => $escorts->count()
+                'results_count' => $isViewAll ? $recordCount : $escorts->count(),
+                'is_view_all' => $isViewAll
             ]);
             
-            return response()->json([
+            $response = [
                 'status' => 'success',
                 'html' => view('partials.escort-table', compact('escorts'))->render(),
-                'pagination' => $escorts->links()->render(),
                 'stats' => $stats,
                 'session_id' => Session::getId(),
                 'filters_applied' => Session::get('dashboard_filters', [])
-            ]);
+            ];
+            
+            if ($isViewAll) {
+                // For view_all requests, don't include pagination
+                $response['pagination'] = '';
+                $response['record_count'] = $recordCount;
+                $response['is_limited'] = $isLimited;
+                $response['view_all'] = true;
+            } else {
+                // For regular paginated requests
+                $response['pagination'] = $escorts->links()->render();
+            }
+            
+            return response()->json($response);
         }
         
         // Get recent form submissions from session

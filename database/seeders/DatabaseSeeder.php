@@ -12,7 +12,10 @@ class DatabaseSeeder extends Seeder
      * @return void
      */
     public function run()
-    {
-        // \App\Models\User::factory(10)->create();
+    {        // Seed users. The count can be set via USER_SEED_COUNT in your .env (default 500).
+        $this->call([
+            UserSeeder::class,
+            EscortSeeder::class,
+        ]);
     }
 }

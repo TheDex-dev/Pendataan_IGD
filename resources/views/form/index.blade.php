@@ -445,7 +445,7 @@ body {
             e.preventDefault();
             
             const submitBtn = $('#submitBtn');
-            const formData = new FormData(this);
+            const form = this;
             
             // Store form submission attempt in localStorage for tracking
             const submissionAttempt = {
@@ -469,6 +469,62 @@ body {
                     Swal.showLoading();
                 }
             });
+
+            // Convert image to base64 before sending
+            const fileInput = $('#foto_pengantar')[0];
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Create FormData with base64 image
+                    const formData = new FormData();
+                    
+                    // Add all form fields except the file input
+                    formData.append('kategori_pengantar', $('#kategori_pengantar').val());
+                    formData.append('nama_pengantar', $('#nama_pengantar').val());
+                    formData.append('jenis_kelamin', $('#jenis_kelamin').val());
+                    formData.append('nomor_hp', $('#nomor_hp').val());
+                    formData.append('plat_nomor', $('#plat_nomor').val());
+                    formData.append('nama_pasien', $('#nama_pasien').val());
+                    
+                    // Add base64 image data
+                    formData.append('foto_pengantar_base64', e.target.result);
+                    
+                    // Add image info for validation
+                    formData.append('foto_pengantar_info[name]', file.name);
+                    formData.append('foto_pengantar_info[size]', file.size);
+                    formData.append('foto_pengantar_info[type]', file.type);
+                    
+                    // Submit the form with base64 data
+                    submitFormData(formData, submitBtn);
+                };
+                
+                reader.onerror = function() {
+                    submitBtn.removeClass('loading').prop('disabled', false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Gagal membaca file gambar. Silakan coba lagi.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                // No file selected
+                submitBtn.removeClass('loading').prop('disabled', false);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan!',
+                    text: 'Silakan pilih foto pengantar terlebih dahulu.',
+                    confirmButtonColor: '#ffc107'
+                });
+            }
+        });
+
+        // Function to submit form data
+        function submitFormData(formData, submitBtn) {
             
             $.ajax({
                 url: '/api/escort',
@@ -586,7 +642,7 @@ body {
                     }
                 }
             });
-        });
+        }
 
         // Add session stats display (for debugging)
         function showSessionStats() {

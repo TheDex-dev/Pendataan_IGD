@@ -19,7 +19,13 @@
         <tbody>
             @forelse($escorts as $index => $escort)
                 <tr>
-                    <td class="px-4">{{ ($escorts->currentPage() - 1) * $escorts->perPage() + $index + 1 }}</td>
+                    <td class="px-4">
+                        {{ 
+                            method_exists($escorts, 'currentPage') 
+                                ? ($escorts->currentPage() - 1) * $escorts->perPage() + $index + 1 
+                                : $index + 1 
+                        }}
+                    </td>
                     <td>
                         <span class="badge kategori-badge
                             @if($escort->kategori_pengantar == 'Polisi') bg-primary
@@ -263,11 +269,20 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 </script>
 
-@if($escorts->hasPages())
+@if(method_exists($escorts, 'hasPages') && $escorts->hasPages())
     <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="text-muted small">
             Menampilkan {{ $escorts->firstItem() ?? 0 }} sampai {{ $escorts->lastItem() ?? 0 }} 
             dari {{ $escorts->total() }} hasil
+        </div>
+    </div>
+@elseif(is_countable($escorts) && count($escorts) > 0)
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted small">
+            Menampilkan {{ count($escorts) }} dari {{ count($escorts) }} hasil
+            @if(request('view_all') === 'true')
+                <span class="badge bg-info ms-2">Semua Data</span>
+            @endif
         </div>
     </div>
 @endif
