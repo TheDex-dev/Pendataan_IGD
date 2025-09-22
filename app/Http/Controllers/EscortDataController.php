@@ -12,6 +12,7 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Carbon\Carbon;
 
 class EscortDataController extends Controller
 {
@@ -38,7 +39,7 @@ class EscortDataController extends Controller
     {
         // Store dashboard access in session
         Session::put('dashboard_accessed_at', now());
-        Session::put('dashboard_filters', $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only']));
+        Session::put('dashboard_filters', $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only', 'week_only', 'month_only', 'date_specific']));
         
         $query = EscortModel::query();
         
@@ -92,6 +93,42 @@ class EscortDataController extends Controller
             $query->where('status', $request->status);
             Session::put('last_status_filter', $request->status);
         }
+
+        // Penambahan filter tanggal minggu, bulan, dan pilih tanggal
+        $today = now('Asia/Jakarta');
+        if ($request->has('date_specific') && $request->date_specific) {
+            try {
+                $date = Carbon::parse($request->date_specific)->setTimezone('Asia/Jakarta');
+                if ($date->isFuture()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tanggal spesifik tidak boleh di masa depan.',
+                    ], 400);
+                }
+                $query->whereDate('created_at', $date->toDateString());
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal spesifik yang dipilih tidak valid.',
+                ], 400);
+            }
+        } elseif ($request->has('week_only') && $request->week_only == '1') {
+            $query->whereBetween('created_at', [
+                $today->startOfWeek()->startOfDay(),
+                $today->endOfWeek()->endOfDay()
+            ]);
+            Session::put('last_week_only_filter', true);
+        } else {
+            Session::forget('last_week_only_filter');
+        }
+
+        if ($request->has('month_only') && $request->month_only == '1') {
+            $query->whereMonth('created_at', $today->month)
+                  ->whereYear('created_at', $today->year);
+            Session::put('last_month_only_filter', true);
+        } else {
+            Session::forget('last_month_only_filter');
+        }
         
         // Order by latest first
         $query->orderBy('created_at', 'desc');
@@ -116,7 +153,7 @@ class EscortDataController extends Controller
                     'total_records' => $totalRecords,
                     'safety_limit' => $safetyLimit,
                     'ip' => $request->ip(),
-                    'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only'])
+                    'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only', 'week_only', 'month_only', 'date_specific'])
                 ]);
             } else {
                 $escorts = $query->get();
@@ -130,7 +167,7 @@ class EscortDataController extends Controller
                 'record_count' => $recordCount,
                 'is_limited' => $isLimited,
                 'total_available' => $totalRecords,
-                'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only'])
+                'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only', 'week_only', 'month_only', 'date_specific'])
             ]);
             
         } else {
@@ -140,15 +177,24 @@ class EscortDataController extends Controller
         }
         
         // Get cached or fresh statistics
-        $stats = Cache::remember('escort_stats', 300, function() {
+        $stats = Cache::remember('escort_stats', 300, function() use ($request, $today) {
+            $baseQuery = EscortModel::query();
+
             return [
-                'total' => EscortModel::count(),
-                'today' => EscortModel::whereDate('created_at', today())->count(),
-                'this_week' => EscortModel::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                'this_month' => EscortModel::whereMonth('created_at', now()->month)->count(),
-                'pending' => EscortModel::where('status', 'pending')->count(),
-                'verified' => EscortModel::where('status', 'verified')->count(),
-                'rejected' => EscortModel::where('status', 'rejected')->count(),
+                'total' => $baseQuery->count(),
+                'today' => $baseQuery->whereDate('created_at', $today->toDateString())->count(),
+                'this_week' => $baseQuery->whereBetween('created_at', [
+                    $today->startOfWeek()->startOfDay(),
+                    $today->endOfWeek()->endOfDay()
+                ])->count(),
+                'this_month' => $baseQuery->whereMonth('created_at', $today->month)
+                    ->whereYear('created_at', $today->year)->count(),
+                'specific_date' => $request->has('date_specific') && $request->date_specific
+                    ? $baseQuery->whereDate('created_at', Carbon::parse($request->date_specific)->setTimezone('Asia/Jakarta')->toDateString())->count()
+                    : 0,
+                'pending' => $baseQuery->where('status', 'pending')->count(),
+                'verified' => $baseQuery->where('status', 'verified')->count(),
+                'rejected' => $baseQuery->where('status', 'rejected')->count(),
             ];
         });
         
@@ -288,9 +334,6 @@ class EscortDataController extends Controller
                 $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
                 
                 Session::put("submission_{$submissionId}_file", [
-                    'original_name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
                     'stored_name' => $filename,
                     'processing_method' => 'file_upload'
                 ]);
