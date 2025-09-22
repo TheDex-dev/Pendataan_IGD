@@ -38,9 +38,18 @@ class EscortDataController extends Controller
     {
         // Store dashboard access in session
         Session::put('dashboard_accessed_at', now());
-        Session::put('dashboard_filters', $request->only(['search', 'kategori', 'jenis_kelamin']));
+        Session::put('dashboard_filters', $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only']));
         
         $query = EscortModel::query();
+        
+        // Handle today only filter with session persistence
+        if ($request->has('today_only') && $request->today_only == '1') {
+            $query->whereDate('created_at', today());
+            Session::put('last_today_only_filter', true);
+        } else {
+            // Explicitly clear the session if checkbox is unchecked or not present
+            Session::forget('last_today_only_filter');
+        }
         
         // Handle search functionality with session persistence
         if ($request->has('search') && $request->search != '') {
@@ -107,7 +116,7 @@ class EscortDataController extends Controller
                     'total_records' => $totalRecords,
                     'safety_limit' => $safetyLimit,
                     'ip' => $request->ip(),
-                    'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status'])
+                    'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only'])
                 ]);
             } else {
                 $escorts = $query->get();
@@ -121,7 +130,7 @@ class EscortDataController extends Controller
                 'record_count' => $recordCount,
                 'is_limited' => $isLimited,
                 'total_available' => $totalRecords,
-                'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status'])
+                'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only'])
             ]);
             
         } else {
@@ -155,7 +164,7 @@ class EscortDataController extends Controller
             
             $response = [
                 'status' => 'success',
-                'html' => view('partials.escort-table', compact('escorts'))->render(),
+                'html' => view('partials.escort-table', compact('escorts'))->with('todayFilter', $request->today_only)->render(),
                 'stats' => $stats,
                 'session_id' => Session::getId(),
                 'filters_applied' => Session::get('dashboard_filters', [])

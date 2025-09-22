@@ -113,53 +113,129 @@
 
     <!-- Filters and Search -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-success">Filter & Pencarian</h6>
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-success">
+                <i class="fas fa-filter"></i> Filter & Pencarian Data
+            </h6>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
+                <i class="fas fa-sliders-h"></i> Filter Lanjutan
+            </button>
         </div>
         <div class="card-body">
             <form id="filter-form">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label for="search" class="form-label">Pencarian</label>
-                        <input type="text" class="form-control" id="search" name="search" 
-                               placeholder="Cari nama, HP, plat nomor..." value="{{ request('search') }}">
+                <!-- Main Search Row -->
+                <div class="row mb-3">
+                    <div class="col-lg-8 col-md-7 mb-3">
+                        <label for="search" class="form-label fw-semibold">
+                            <i class="fas fa-search text-primary"></i> Pencarian Cepat
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="search" name="search" 
+                               placeholder="Cari nama pengantar, nama pasien, nomor HP, atau plat nomor..." 
+                               value="{{ request('search') }}">
+                        <small class="form-text text-muted">Ketik untuk mencari data secara real-time</small>
                     </div>
-                    <div class="col-md-2 mb-3">
-                        <label for="kategori" class="form-label">Kategori</label>
-                        <select class="form-select" id="kategori" name="kategori">
-                            <option value="">Semua Kategori</option>
-                            <option value="Polisi" {{ request('kategori') == 'Polisi' ? 'selected' : '' }}>Polisi</option>
-                            <option value="Ambulans" {{ request('kategori') == 'Ambulans' ? 'selected' : '' }}>Ambulans</option>
-                            <option value="Perorangan" {{ request('kategori') == 'Perorangan' ? 'selected' : '' }}>Perorangan</option>
-                        </select>
+                    <div class="col-lg-4 col-md-5 mb-3 d-flex align-items-end">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end w-100">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search"></i> Cari
+                            </button>
+                            <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-sync-alt"></i> Reset
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-md-2 mb-3">
-                        <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
-                        <select class="form-select" id="jenis_kelamin" name="jenis_kelamin">
-                            <option value="">Semua</option>
-                            <option value="Laki-laki" {{ request('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="Perempuan" {{ request('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="">Semua Status</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
-                            <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Terverifikasi</option>
-                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="fas fa-search"></i> Cari
-                        </button>
-                        <a href="{{ route('dashboard') }}" class="btn btn-secondary me-2">
-                            <i class="fas fa-refresh"></i> Refresh
-                        </a>
-                        <button type="button" id="view-all-btn" class="btn btn-info me-2">
-                            <i class="fas fa-list"></i> Lihat Semua
-                        </button>
+                </div>
+
+                <!-- Advanced Filters (Collapsible) -->
+                <div class="collapse" id="advancedFilters">
+                    <div class="border-top pt-3 mt-3">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-cogs"></i> Filter Lanjutan
+                        </h6>
+                        
+                        <!-- Filter Row 1: Category and Status -->
+                        <div class="row mb-3">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label for="kategori" class="form-label fw-semibold">
+                                    <i class="fas fa-tags text-info"></i> Kategori Pengantar
+                                </label>
+                                <select class="form-select" id="kategori" name="kategori">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="Polisi" {{ request('kategori') == 'Polisi' ? 'selected' : '' }}>
+                                        <i class="fas fa-shield-alt"></i> Polisi
+                                    </option>
+                                    <option value="Ambulans" {{ request('kategori') == 'Ambulans' ? 'selected' : '' }}>
+                                        <i class="fas fa-ambulance"></i> Ambulans
+                                    </option>
+                                    <option value="Perorangan" {{ request('kategori') == 'Perorangan' ? 'selected' : '' }}>
+                                        <i class="fas fa-user"></i> Perorangan
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label for="status" class="form-label fw-semibold">
+                                    <i class="fas fa-check-circle text-success"></i> Status Verifikasi
+                                </label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
+                                        <i class="fas fa-clock"></i> Menunggu
+                                    </option>
+                                    <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>
+                                        <i class="fas fa-check"></i> Terverifikasi
+                                    </option>
+                                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
+                                        <i class="fas fa-times"></i> Ditolak
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label for="jenis_kelamin" class="form-label fw-semibold">
+                                    <i class="fas fa-venus-mars text-warning"></i> Jenis Kelamin
+                                </label>
+                                <select class="form-select" id="jenis_kelamin" name="jenis_kelamin">
+                                    <option value="">Semua</option>
+                                    <option value="Laki-laki" {{ request('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>
+                                        <i class="fas fa-mars"></i> Laki-laki
+                                    </option>
+                                    <option value="Perempuan" {{ request('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>
+                                        <i class="fas fa-venus"></i> Perempuan
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-calendar-day text-info"></i> Filter Tanggal
+                                </label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="today_only" name="today_only" value="1" 
+                                           {{ request('today_only') ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-normal" for="today_only">
+                                        Tampilkan data hari ini saja
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">Aktifkan untuk melihat data hari ini</small>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons Row -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" id="view-all-btn" class="btn btn-info">
+                                            <i class="fas fa-list"></i> Lihat Semua Data
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="clearAllFilters()">
+                                            <i class="fas fa-eraser"></i> Bersihkan Filter
+                                        </button>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <span id="filter-status">Semua filter tidak aktif</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -173,7 +249,7 @@
         </div>
         <div class="card-body">
             <div id="table-container">
-                @include('partials.escort-table', ['escorts' => $escorts])
+                @include('partials.escort-table', ['escorts' => $escorts, 'todayFilter' => request('today_only')])
             </div>
             
             <!-- Pagination -->
@@ -244,6 +320,79 @@
 .btn-group .btn {
     margin-right: 2px;
 }
+
+/* Today filter styling */
+.form-check-input:checked {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.form-check-label i {
+    margin-right: 0.25rem;
+}
+
+/* Enhanced filter section styling */
+.card-header .btn {
+    font-size: 0.875rem;
+}
+
+.form-label.fw-semibold {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-label i {
+    margin-right: 0.375rem;
+}
+
+.form-control-lg {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+.form-switch .form-check-input {
+    width: 2em;
+    margin-left: -2.5em;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+#filter-status {
+    font-size: 0.875rem;
+}
+
+.collapse {
+    transition: height 0.35s ease;
+}
+
+.border-top {
+    border-color: #dee2e6 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .d-grid.gap-2.d-md-flex {
+        gap: 0.5rem !important;
+    }
+    
+    .btn-lg {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .form-control-lg {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
 </style>
 </style>
 @endpush
@@ -253,6 +402,40 @@
 $(document).ready(function() {
     // Load initial data
     loadData();
+    
+    // Initialize filter indicator
+    updateFilterIndicator();
+    
+    // Show advanced filters if any advanced filter has a value on page load
+    const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only'];
+    const hasAdvancedFilter = advancedFilters.some(selector => 
+        $(selector).val() || (selector === '#today_only' && $(selector).is(':checked'))
+    );
+    
+    if (hasAdvancedFilter) {
+        $('#advancedFilters').collapse('show');
+        // Update toggle button text
+        const toggleBtn = $('[data-bs-target="#advancedFilters"]');
+        toggleBtn.html('<i class="fas fa-chevron-up"></i> Sembunyikan Filter');
+    }
+    
+    // Handle advanced filter toggle button text
+    $('#advancedFilters').on('show.bs.collapse', function () {
+        const toggleBtn = $('[data-bs-target="#advancedFilters"]');
+        toggleBtn.html('<i class="fas fa-chevron-up"></i> Sembunyikan Filter');
+        toggleBtn.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+    });
+    
+    $('#advancedFilters').on('hide.bs.collapse', function () {
+        const toggleBtn = $('[data-bs-target="#advancedFilters"]');
+        toggleBtn.html('<i class="fas fa-sliders-h"></i> Filter Lanjutan');
+        toggleBtn.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+    });
+    
+    // Ensure filter status is visible when advanced filters are shown
+    $('#advancedFilters').on('shown.bs.collapse', function () {
+        updateFilterIndicator();
+    });
 
     // AJAX form submission
     $('#filter-form').on('submit', function(e) {
@@ -265,14 +448,65 @@ $(document).ready(function() {
     $('#search').on('input', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(function() {
+            updateFilterIndicator();
             loadData();
         }, 500);
     });
     
     // Auto filter on select change
-    $('#kategori, #jenis_kelamin, #status').on('change', function() {
+    $('#kategori, #jenis_kelamin, #status, #today_only').on('change', function() {
+        // Update filter button to show active state
+        updateFilterIndicator();
         loadData();
     });
+    
+    // Function to update filter indicator
+    function updateFilterIndicator() {
+        const activeFilters = [];
+        
+        if ($('#search').val()) activeFilters.push('Pencarian');
+        if ($('#kategori').val()) activeFilters.push('Kategori');
+        if ($('#jenis_kelamin').val()) activeFilters.push('Jenis Kelamin');
+        if ($('#status').val()) activeFilters.push('Status');
+        if ($('#today_only').is(':checked')) activeFilters.push('Hari Ini');
+        
+        const searchBtn = $('#filter-form button[type="submit"]');
+        const filterStatus = $('#filter-status');
+        
+        if (activeFilters.length > 0) {
+            searchBtn.html('<i class="fas fa-search"></i> Cari (' + activeFilters.length + ')');
+            searchBtn.removeClass('btn-primary').addClass('btn-success');
+            filterStatus.html('<i class="fas fa-filter text-success"></i> ' + activeFilters.length + ' filter aktif: ' + activeFilters.join(', '));
+            
+            // Expand advanced filters if any advanced filter is active
+            const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only'];
+            const hasAdvancedFilter = advancedFilters.some(selector => 
+                $(selector).val() || (selector === '#today_only' && $(selector).is(':checked'))
+            );
+            
+            if (hasAdvancedFilter && !$('#advancedFilters').hasClass('show')) {
+                $('#advancedFilters').collapse('show');
+            }
+        } else {
+            searchBtn.html('<i class="fas fa-search"></i> Cari');
+            searchBtn.removeClass('btn-success').addClass('btn-primary');
+            filterStatus.html('Semua filter tidak aktif');
+        }
+    }
+    
+    // Function to clear all filters
+    function clearAllFilters() {
+        $('#search').val('');
+        $('#kategori').val('');
+        $('#jenis_kelamin').val('');
+        $('#status').val('');
+        $('#today_only').prop('checked', false);
+        updateFilterIndicator();
+        loadData();
+    }
+    
+    // Make clearAllFilters available globally
+    window.clearAllFilters = clearAllFilters;
     
     // View All button handler
     $('#view-all-btn').on('click', function(e) {

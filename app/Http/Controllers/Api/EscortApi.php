@@ -237,6 +237,11 @@ class EscortApi extends Controller
                 });
             }
             
+            // Handle today only filter
+            if ($request->has('today_only') && $request->today_only == '1') {
+                $query->whereDate('created_at', today());
+            }
+            
             $perPage = $request->get('per_page', 15);
             $escorts = $query->orderBy('created_at', 'desc')->paginate($perPage);
             

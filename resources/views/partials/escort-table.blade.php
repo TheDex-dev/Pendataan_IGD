@@ -1,4 +1,10 @@
 <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    @if(isset($todayFilter) && $todayFilter)
+        <div class="alert alert-info border-0 rounded-0 mb-0" role="alert">
+            <i class="fas fa-calendar-day"></i> 
+            <strong>Filter Aktif:</strong> Menampilkan data hari ini saja ({{ today()->format('d M Y') }})
+        </div>
+    @endif
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
