@@ -3,6 +3,7 @@
 @section('title', 'Dashboard IGD')
 
 @push('styles')
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
     /* Custom styles for SweetAlert2 popups */
     .swal-wide {
@@ -32,6 +33,125 @@
     .swal2-popup .alert {
         margin-bottom: 0;
         font-size: 0.9rem;
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    .text-xs {
+        font-size: 0.75rem;
+    }
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+    .table-responsive {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .badge-warning {
+        background-color: #f6c23e !important;
+        color: #1f2937 !important;
+    }
+    .badge-success {
+        background-color: #1cc88a !important;
+        color: white !important;
+    }
+    .badge-danger {
+        background-color: #e74a3b !important;
+        color: white !important;
+    }
+    .btn-status-update {
+        margin: 1px;
+    }
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+    /* Filter styling */
+    .form-check-input:checked {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .form-check-label {
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+    .form-check-label i {
+        margin-right: 0.25rem;
+    }
+    /* Enhanced filter section styling */
+    .card-header .btn {
+        font-size: 0.875rem;
+    }
+    .form-label.fw-semibold {
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .form-label i {
+        margin-right: 0.375rem;
+    }
+    .form-control-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    .form-switch .form-check-input {
+        width: 2em;
+        margin-left: -2.5em;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    #filter-status {
+        font-size: 0.875rem;
+    }
+    .collapse {
+        transition: height 0.35s ease;
+    }
+    .border-top {
+        border-color: #dee2e6 !important;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .d-grid.gap-2.d-md-flex {
+            gap: 0.5rem !important;
+        }
+        .btn-lg {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        .form-control-lg {
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+        }
+    }
+    /* Filter group styling */
+    .filter-group {
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    /* Date picker styling */
+    .form-control[type="date"] {
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        border: 1px solid #ced4da;
+    }
+    .form-control[type="date"]:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
     }
 </style>
 @endpush
@@ -205,16 +325,37 @@
                             </div>
                             <div class="col-lg-3 col-md-6 mb-3">
                                 <label class="form-label fw-semibold">
-                                    <i class="fas fa-calendar-day text-info"></i> Filter Tanggal
+                                    <i class="fas fa-calendar text-info"></i> Filter Tanggal
                                 </label>
-                                <div class="form-check form-switch mt-2">
+                                <div class="filter-group">
                                     <input class="form-check-input" type="checkbox" id="today_only" name="today_only" value="1" 
                                            {{ request('today_only') ? 'checked' : '' }}>
                                     <label class="form-check-label fw-normal" for="today_only">
-                                        Tampilkan data hari ini saja
+                                        <i class="fas fa-calendar-day"></i> Tampilkan data hari ini
                                     </label>
                                 </div>
-                                <small class="form-text text-muted">Aktifkan untuk melihat data hari ini</small>
+                                <div class="filter-group">
+                                    <input class="form-check-input" type="checkbox" id="week_only" name="week_only" value="1" 
+                                           {{ request('week_only') ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-normal" for="week_only">
+                                        <i class="fas fa-calendar-week"></i> Tampilkan data minggu ini
+                                    </label>
+                                </div>
+                                <div class="filter-group">
+                                    <input class="form-check-input" type="checkbox" id="month_only" name="month_only" value="1" 
+                                           {{ request('month_only') ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-normal" for="month_only">
+                                        <i class="fas fa-calendar-alt"></i> Tampilkan data bulan ini
+                                    </label>
+                                </div>
+                                <div class="filter-group">
+                                    <input type="date" class="form-control" id="date_specific" name="date_specific" 
+                                           value="{{ request('date_specific') }}" max="{{ date('Y-m-d') }}">
+                                    <label class="form-label fw-normal" for="date_specific">
+                                        <i class="fas fa-calendar"></i> Pilih Tanggal Spesifik
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">Pilih satu filter tanggal untuk mempersempit hasil</small>
                             </div>
                         </div>
 
@@ -269,135 +410,9 @@
     </div>
 </div>
 
-@push('styles')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<style>
-.border-left-primary {
-    border-left: 4px solid #4e73df !important;
-}
-.border-left-success {
-    border-left: 4px solid #1cc88a !important;
-}
-.border-left-warning {
-    border-left: 4px solid #f6c23e !important;
-}
-.border-left-info {
-    border-left: 4px solid #36b9cc !important;
-}
-.text-xs {
-    font-size: 0.75rem;
-}
-.text-gray-800 {
-    color: #5a5c69 !important;
-}
-.text-gray-300 {
-    color: #dddfeb !important;
-}
-.table-responsive {
-    max-height: 600px;
-    overflow-y: auto;
-}
-
-.badge-warning {
-    background-color: #f6c23e !important;
-    color: #1f2937 !important;
-}
-
-.badge-success {
-    background-color: #1cc88a !important;
-    color: white !important;
-}
-
-.badge-danger {
-    background-color: #e74a3b !important;
-    color: white !important;
-}
-
-.btn-status-update {
-    margin: 1px;
-}
-
-.btn-group .btn {
-    margin-right: 2px;
-}
-
-/* Today filter styling */
-.form-check-input:checked {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-}
-
-.form-check-label {
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
-.form-check-label i {
-    margin-right: 0.25rem;
-}
-
-/* Enhanced filter section styling */
-.card-header .btn {
-    font-size: 0.875rem;
-}
-
-.form-label.fw-semibold {
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-.form-label i {
-    margin-right: 0.375rem;
-}
-
-.form-control-lg {
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
-}
-
-.form-switch .form-check-input {
-    width: 2em;
-    margin-left: -2.5em;
-}
-
-.form-switch .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-#filter-status {
-    font-size: 0.875rem;
-}
-
-.collapse {
-    transition: height 0.35s ease;
-}
-
-.border-top {
-    border-color: #dee2e6 !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .d-grid.gap-2.d-md-flex {
-        gap: 0.5rem !important;
-    }
-    
-    .btn-lg {
-        font-size: 0.875rem;
-        padding: 0.5rem 1rem;
-    }
-    
-    .form-control-lg {
-        font-size: 0.875rem;
-        padding: 0.5rem 0.75rem;
-    }
-}
-</style>
-</style>
-@endpush
-
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.45/moment-timezone-with-data.min.js"></script>
 <script>
 $(document).ready(function() {
     // Load initial data
@@ -407,14 +422,13 @@ $(document).ready(function() {
     updateFilterIndicator();
     
     // Show advanced filters if any advanced filter has a value on page load
-    const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only'];
+    const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only', '#week_only', '#month_only', '#date_specific'];
     const hasAdvancedFilter = advancedFilters.some(selector => 
-        $(selector).val() || (selector === '#today_only' && $(selector).is(':checked'))
+        $(selector).val() || (['#today_only', '#week_only', '#month_only'].includes(selector) && $(selector).is(':checked'))
     );
     
     if (hasAdvancedFilter) {
         $('#advancedFilters').collapse('show');
-        // Update toggle button text
         const toggleBtn = $('[data-bs-target="#advancedFilters"]');
         toggleBtn.html('<i class="fas fa-chevron-up"></i> Sembunyikan Filter');
     }
@@ -453,11 +467,39 @@ $(document).ready(function() {
         }, 500);
     });
     
-    // Auto filter on select change
-    $('#kategori, #jenis_kelamin, #status, #today_only').on('change', function() {
+    // Auto filter on select change and checkbox/date input change
+    $('#kategori, #jenis_kelamin, #status, #today_only, #week_only, #month_only, #date_specific').on('change', function() {
+        // Ensure only one date filter is active
+        const dateFilters = ['#today_only', '#week_only', '#month_only', '#date_specific'];
+        const changedFilter = $(this).attr('id');
+        if (dateFilters.includes('#' + changedFilter)) {
+            dateFilters.forEach(filter => {
+                if (filter !== '#' + changedFilter) {
+                    if (filter === '#date_specific') {
+                        $(filter).val('');
+                    } else {
+                        $(filter).prop('checked', false);
+                    }
+                }
+            });
+        }
+        
         // Update filter button to show active state
         updateFilterIndicator();
         loadData();
+        
+        // Store filter state in localStorage with GMT+7 timestamp
+        localStorage.setItem('filterState', JSON.stringify({
+            search: $('#search').val(),
+            kategori: $('#kategori').val(),
+            jenis_kelamin: $('#jenis_kelamin').val(),
+            status: $('#status').val(),
+            today_only: $('#today_only').is(':checked') ? 1 : 0,
+            week_only: $('#week_only').is(':checked') ? 1 : 0,
+            month_only: $('#month_only').is(':checked') ? 1 : 0,
+            date_specific: $('#date_specific').val(),
+            timestamp: moment().tz('Asia/Jakarta').format()
+        }));
     });
     
     // Function to update filter indicator
@@ -469,6 +511,9 @@ $(document).ready(function() {
         if ($('#jenis_kelamin').val()) activeFilters.push('Jenis Kelamin');
         if ($('#status').val()) activeFilters.push('Status');
         if ($('#today_only').is(':checked')) activeFilters.push('Hari Ini');
+        if ($('#week_only').is(':checked')) activeFilters.push('Minggu Ini');
+        if ($('#month_only').is(':checked')) activeFilters.push('Bulan Ini');
+        if ($('#date_specific').val()) activeFilters.push('Tanggal Spesifik');
         
         const searchBtn = $('#filter-form button[type="submit"]');
         const filterStatus = $('#filter-status');
@@ -479,9 +524,9 @@ $(document).ready(function() {
             filterStatus.html('<i class="fas fa-filter text-success"></i> ' + activeFilters.length + ' filter aktif: ' + activeFilters.join(', '));
             
             // Expand advanced filters if any advanced filter is active
-            const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only'];
+            const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only', '#week_only', '#month_only', '#date_specific'];
             const hasAdvancedFilter = advancedFilters.some(selector => 
-                $(selector).val() || (selector === '#today_only' && $(selector).is(':checked'))
+                $(selector).val() || (['#today_only', '#week_only', '#month_only'].includes(selector) && $(selector).is(':checked'))
             );
             
             if (hasAdvancedFilter && !$('#advancedFilters').hasClass('show')) {
@@ -501,8 +546,14 @@ $(document).ready(function() {
         $('#jenis_kelamin').val('');
         $('#status').val('');
         $('#today_only').prop('checked', false);
+        $('#week_only').prop('checked', false);
+        $('#month_only').prop('checked', false);
+        $('#date_specific').val('');
         updateFilterIndicator();
         loadData();
+        
+        // Clear filter state in localStorage
+        localStorage.removeItem('filterState');
     }
     
     // Make clearAllFilters available globally
@@ -660,7 +711,7 @@ $(document).ready(function() {
         const statusText = $(this).data('status-text');
         const buttonElement = $(this);
         
-            // Get escort data from the table row
+        // Get escort data from the table row
         const row = buttonElement.closest('tr');
         const escortData = {
             kategori_pengantar: row.find('td:nth-child(2) span.kategori-badge').text().trim(),
@@ -670,7 +721,9 @@ $(document).ready(function() {
             plat_nomor: row.find('td:nth-child(6)').text().trim(),
             nama_pasien: row.find('td:nth-child(7)').text().trim(),
             waktu_masuk: row.find('td:nth-child(9)').text().trim()
-        };        // Determine color and icon based on status
+        };
+        
+        // Determine color and icon based on status
         const statusConfig = {
             'verified': {
                 confirmButtonColor: '#28a745',
