@@ -36,19 +36,37 @@ class EscortDataController extends Controller
      */
     public function dashboard(Request $request)
     {
-        // Store dashboard access in session
+        // Store dashboard access in session with enhanced filter tracking
         Session::put('dashboard_accessed_at', now());
-        Session::put('dashboard_filters', $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only']));
+        Session::put('dashboard_filters', $request->only([
+            'search', 'kategori', 'jenis_kelamin', 'status', 
+            'today_only', 'week_only', 'month_only', 'date_specific'
+        ]));
         
         $query = EscortModel::query();
         
-        // Handle today only filter with session persistence
+        // Handle date filters with session persistence (mutually exclusive)
         if ($request->has('today_only') && $request->today_only == '1') {
             $query->whereDate('created_at', today());
-            Session::put('last_today_only_filter', true);
+            Session::put('last_date_filter', ['type' => 'today_only', 'value' => true]);
+        } elseif ($request->has('week_only') && $request->week_only == '1') {
+            $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+            Session::put('last_date_filter', ['type' => 'week_only', 'value' => true]);
+        } elseif ($request->has('month_only') && $request->month_only == '1') {
+            $query->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year);
+            Session::put('last_date_filter', ['type' => 'month_only', 'value' => true]);
+        } elseif ($request->has('date_specific') && $request->date_specific != '') {
+            $specificDate = $request->date_specific;
+            // Validate date format
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $specificDate)) {
+                $query->whereDate('created_at', $specificDate);
+                Session::put('last_date_filter', ['type' => 'date_specific', 'value' => $specificDate]);
+            }
         } else {
-            // Explicitly clear the session if checkbox is unchecked or not present
-            Session::forget('last_today_only_filter');
+            // Clear date filter session if no date filter is active
+            Session::forget('last_date_filter');
+            Session::forget('last_today_only_filter'); // Legacy cleanup
         }
         
         // Handle search functionality with session persistence
@@ -116,7 +134,10 @@ class EscortDataController extends Controller
                     'total_records' => $totalRecords,
                     'safety_limit' => $safetyLimit,
                     'ip' => $request->ip(),
-                    'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only'])
+                    'filters' => $request->only([
+                        'search', 'kategori', 'jenis_kelamin', 'status', 
+                        'today_only', 'week_only', 'month_only', 'date_specific'
+                    ])
                 ]);
             } else {
                 $escorts = $query->get();
@@ -130,7 +151,10 @@ class EscortDataController extends Controller
                 'record_count' => $recordCount,
                 'is_limited' => $isLimited,
                 'total_available' => $totalRecords,
-                'filters' => $request->only(['search', 'kategori', 'jenis_kelamin', 'status', 'today_only'])
+                'filters' => $request->only([
+                    'search', 'kategori', 'jenis_kelamin', 'status', 
+                    'today_only', 'week_only', 'month_only', 'date_specific'
+                ])
             ]);
             
         } else {
@@ -164,7 +188,7 @@ class EscortDataController extends Controller
             
             $response = [
                 'status' => 'success',
-                'html' => view('partials.escort-table', compact('escorts'))->with('todayFilter', $request->today_only)->render(),
+                'html' => view('partials.escort-table', compact('escorts'))->render(),
                 'stats' => $stats,
                 'session_id' => Session::getId(),
                 'filters_applied' => Session::get('dashboard_filters', [])

@@ -1,8 +1,27 @@
 <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-    @if(isset($todayFilter) && $todayFilter)
+    @php
+        $activeFilter = null;
+        $filterMessage = '';
+        
+        if(request('today_only')) {
+            $activeFilter = 'today';
+            $filterMessage = 'Menampilkan data hari ini saja (' . today()->format('d M Y') . ')';
+        } elseif(request('week_only')) {
+            $activeFilter = 'week';
+            $filterMessage = 'Menampilkan data minggu ini (' . now()->startOfWeek()->format('d M') . ' - ' . now()->endOfWeek()->format('d M Y') . ')';
+        } elseif(request('month_only')) {
+            $activeFilter = 'month';
+            $filterMessage = 'Menampilkan data bulan ini (' . now()->format('F Y') . ')';
+        } elseif(request('date_specific')) {
+            $activeFilter = 'specific';
+            $filterMessage = 'Menampilkan data tanggal ' . \Carbon\Carbon::parse(request('date_specific'))->format('d M Y');
+        }
+    @endphp
+    
+    @if($activeFilter)
         <div class="alert alert-info border-0 rounded-0 mb-0" role="alert">
-            <i class="fas fa-calendar-day"></i> 
-            <strong>Filter Aktif:</strong> Menampilkan data hari ini saja ({{ today()->format('d M Y') }})
+            <i class="fas fa-calendar-{{ $activeFilter == 'today' ? 'day' : ($activeFilter == 'week' ? 'week' : ($activeFilter == 'month' ? 'alt' : 'check')) }}"></i> 
+            <strong>Filter Aktif:</strong> {{ $filterMessage }}
         </div>
     @endif
     <div class="card-body p-0">
