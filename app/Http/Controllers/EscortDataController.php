@@ -12,6 +12,8 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use App\Services\CsvExportService;
+use Carbon\Carbon;
 
 class EscortDataController extends Controller
 {
@@ -178,6 +180,11 @@ class EscortDataController extends Controller
         
         // Handle AJAX requests with session data
         if ($request->ajax()) {
+            // Check if this is a preview request for download functionality
+            if ($request->has('preview') && $request->preview == 'true') {
+                return $this->getDownloadPreviewData($request);
+            }
+            
             // Store AJAX request in session for debugging
             Session::put('last_ajax_request', [
                 'timestamp' => now(),
@@ -212,6 +219,116 @@ class EscortDataController extends Controller
         $recentSubmissions = Session::get('recent_submissions', []);
         
         return view('dashboard', compact('escorts', 'stats', 'recentSubmissions'));
+    }
+    
+    /**
+     * Get preview data for download functionality
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function getDownloadPreviewData(Request $request)
+    {
+        try {
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'kategori' => 'nullable|in:Polisi,Ambulans,Perorangan',
+                'status' => 'nullable|in:pending,verified,rejected',
+                'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+                'search' => 'nullable|string|max:255'
+            ]);
+
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
+            
+            // Build query with filters
+            $query = EscortModel::whereBetween('created_at', [$startDate, $endDate]);
+            
+            // Apply additional filters
+            if ($request->filled('kategori')) {
+                $query->where('kategori_pengantar', $request->kategori);
+            }
+            
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+            
+            if ($request->filled('jenis_kelamin')) {
+                $query->where('jenis_kelamin', $request->jenis_kelamin);
+            }
+            
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('nama_pengantar', 'like', "%{$search}%")
+                      ->orWhere('nama_pasien', 'like', "%{$search}%")
+                      ->orWhere('nomor_hp', 'like', "%{$search}%")
+                      ->orWhere('plat_nomor', 'like', "%{$search}%")
+                      ->orWhere('kategori_pengantar', 'like', "%{$search}%");
+                });
+            }
+            
+            // Get statistics for the filtered data
+            $stats = [
+                'total' => $query->count(),
+                'verified' => (clone $query)->where('status', 'verified')->count(),
+                'pending' => (clone $query)->where('status', 'pending')->count(),
+                'rejected' => (clone $query)->where('status', 'rejected')->count(),
+            ];
+            
+            // Store preview request in session for tracking
+            Session::put('last_download_preview', [
+                'timestamp' => now(),
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'filters' => $request->only(['kategori', 'status', 'jenis_kelamin', 'search']),
+                'stats' => $stats,
+                'ip' => $request->ip()
+            ]);
+            
+            // Log preview request
+            Log::info('Download preview requested', [
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'filters' => $request->only(['kategori', 'status', 'jenis_kelamin', 'search']),
+                'stats' => $stats,
+                'ip' => $request->ip(),
+                'user' => auth()->user()->name ?? 'Unknown'
+            ]);
+            
+            return response()->json([
+                'status' => 'success',
+                'stats' => $stats,
+                'period' => [
+                    'start' => $startDate->format('Y-m-d'),
+                    'end' => $endDate->format('Y-m-d'),
+                    'days' => $startDate->diffInDays($endDate) + 1
+                ],
+                'filters' => $request->only(['kategori', 'status', 'jenis_kelamin', 'search']),
+                'message' => 'Preview data berhasil dimuat'
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Download preview failed', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->all(),
+                'ip' => $request->ip()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat preview data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     
     /**
@@ -601,6 +718,73 @@ class EscortDataController extends Controller
         }
     }
     
+    /**
+     * Download escort data as CSV file
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function downloadCsv(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'kategori' => 'nullable|in:Polisi,Ambulans,Perorangan',
+            'status' => 'nullable|in:pending,verified,rejected',
+            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'search' => 'nullable|string|max:255'
+        ]);
+
+        try {
+            $filters = $request->only(['kategori', 'status', 'jenis_kelamin', 'search']);
+            $startDate = $request->start_date;
+            $endDate = $request->end_date;
+            
+            // Generate filename with date range
+            $filename = 'Data_Escort_IGD_' . 
+                       Carbon::parse($startDate)->format('d-m-Y') . '_sampai_' . 
+                       Carbon::parse($endDate)->format('d-m-Y') . '_' . 
+                       now()->format('His') . '.csv';
+
+            // Log download request
+            Log::info('CSV export requested', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'filters' => $filters,
+                'filename' => $filename,
+                'ip' => $request->ip(),
+                'user' => auth()->user()->name ?? 'Unknown'
+            ]);
+
+            // Track download in session
+            Session::put('last_csv_download', [
+                'timestamp' => now(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'filters' => $filters,
+                'filename' => $filename
+            ]);
+
+            // Generate CSV content using service
+            $csvContent = CsvExportService::generateCsv($startDate, $endDate, $filters);
+
+            return response($csvContent)
+                ->header('Content-Type', 'text/csv; charset=utf-8')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+                ->header('Expires', '0');
+
+        } catch (\Exception $e) {
+            Log::error('CSV export failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
+            return back()->with('error', 'Gagal mengunduh file CSV: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Generate a simple QR code as fallback when main library fails
      * 

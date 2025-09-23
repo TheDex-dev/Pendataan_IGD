@@ -45,6 +45,9 @@ Route::middleware('auth')->group(function () {
     // Escort status management
     Route::patch('/escorts/{escort}/status', [EscortDataController::class, 'updateStatus'])->name('escorts.update-status');
     
+    // Data export/download routes
+    Route::post('/dashboard/download/csv', [EscortDataController::class, 'downloadCsv'])->name('dashboard.download.csv');
+    
     // Admin utilities
     Route::post('/admin/clear-session-data', [EscortDataController::class, 'clearOldSessionData'])->name('admin.clear-session');
 });

@@ -5,6 +5,11 @@
 @push('styles')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
+    /* Reset and base styles */
+    * {
+        box-sizing: border-box;
+    }
+    
     /* Custom styles for SweetAlert2 popups */
     .swal-wide {
         width: 600px !important;
@@ -35,31 +40,252 @@
         font-size: 0.9rem;
     }
     
-    .border-left-primary {
-        border-left: 4px solid #4e73df !important;
+    /* Enhanced card styling */
+    .card {
+        border: none;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
     }
-    .border-left-success {
-        border-left: 4px solid #1cc88a !important;
+    
+    .card:hover {
+        box-shadow: 0 0.25rem 2rem 0 rgba(58, 59, 69, 0.2) !important;
+        transform: translateY(-2px);
     }
-    .border-left-warning {
-        border-left: 4px solid #f6c23e !important;
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem 0.5rem 0 0 !important;
     }
-    .border-left-info {
-        border-left: 4px solid #36b9cc !important;
+    
+    .card-header h6 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1rem;
     }
-    .text-xs {
-        font-size: 0.75rem;
+    
+    .card-body {
+        padding: 1.5rem;
     }
-    .text-gray-800 {
-        color: #5a5c69 !important;
+    
+    /* Statistics cards */
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #4e73df, #6c5ce7);
     }
-    .text-gray-300 {
-        color: #dddfeb !important;
+    
+    .bg-gradient-info {
+        background: linear-gradient(45deg, #36b9cc, #00cec9);
     }
+    
+    .bg-gradient-warning {
+        background: linear-gradient(45deg, #f6c23e, #fdcb6e);
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #1cc88a, #00b894);
+    }
+    
+    /* Form controls */
+    .form-control, .form-select {
+        border: 1px solid #d1d3e2;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+    
+    .form-control-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .form-label {
+        color: #5a5c69;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-label i {
+        margin-right: 0.375rem;
+        color: #858796;
+    }
+    
+    /* Buttons */
+    .btn {
+        border-radius: 0.375rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, #4e73df, #6c5ce7);
+        box-shadow: 0 4px 15px 0 rgba(78, 115, 223, 0.3);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #3d5abe, #5a4fcf);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px 0 rgba(78, 115, 223, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(45deg, #1cc88a, #00b894);
+        box-shadow: 0 4px 15px 0 rgba(28, 200, 138, 0.3);
+    }
+    
+    .btn-success:hover {
+        background: linear-gradient(45deg, #17a673, #00a085);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px 0 rgba(28, 200, 138, 0.4);
+    }
+    
+    .btn-info {
+        background: linear-gradient(45deg, #36b9cc, #00cec9);
+        box-shadow: 0 4px 15px 0 rgba(54, 185, 204, 0.3);
+    }
+    
+    .btn-info:hover {
+        background: linear-gradient(45deg, #2c9faf, #00b3a8);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px 0 rgba(54, 185, 204, 0.4);
+    }
+    
+    /* Advanced filter section */
+    .filter-section {
+        background: #f8f9fc;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px solid #e3e6f0;
+    }
+    
+    /* Filter groups */
+    .filter-group {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    .filter-group .form-check-input {
+        margin: 0;
+        width: 1.25em;
+        height: 1.25em;
+    }
+    
+    .filter-group .form-check-label {
+        font-size: 0.875rem;
+        cursor: pointer;
+        margin: 0;
+        padding-left: 0.25rem;
+    }
+    
+    /* Date controls */
+    .date-control-group {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .form-control[type="date"] {
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        border: 1px solid #d1d3e2;
+    }
+    
+    .form-control[type="date"]:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+    
+    /* Quick date buttons */
+    .quick-date-section {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .quick-date {
+        margin: 0.25rem;
+        font-size: 0.8rem;
+        padding: 0.375rem 0.75rem;
+        white-space: nowrap;
+    }
+    
+    /* Status indicator */
+    .filter-status-indicator {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        margin-top: 1rem;
+    }
+    
+    /* Download section */
+    .download-section {
+        background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+    }
+    
+    .download-preview {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    /* Table enhancements */
     .table-responsive {
         max-height: 600px;
         overflow-y: auto;
+        border-radius: 0.375rem;
+        border: 1px solid #e3e6f0;
     }
+    
+    .table th {
+        background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+        color: #5a5c69;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #dee2e6;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    /* Badge styling */
     .badge-warning {
         background-color: #f6c23e !important;
         color: #1f2937 !important;
@@ -72,158 +298,342 @@
         background-color: #e74a3b !important;
         color: white !important;
     }
+    
+    /* Status update buttons */
     .btn-status-update {
         margin: 1px;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
     }
+    
     .btn-group .btn {
         margin-right: 2px;
     }
-    /* Filter styling */
-    .form-check-input:checked {
-        background-color: #17a2b8;
-        border-color: #17a2b8;
+    
+    /* Page header */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
     }
-    .form-check-label {
-        font-size: 0.9rem;
-        cursor: pointer;
-    }
-    .form-check-label i {
-        margin-right: 0.25rem;
-    }
-    /* Enhanced filter section styling */
-    .card-header .btn {
-        font-size: 0.875rem;
-    }
-    .form-label.fw-semibold {
-        color: #495057;
-        margin-bottom: 0.5rem;
-    }
-    .form-label i {
-        margin-right: 0.375rem;
-    }
-    .form-control-lg {
-        font-size: 1rem;
-        padding: 0.75rem 1rem;
-    }
-    .form-switch .form-check-input {
-        width: 2em;
-        margin-left: -2.5em;
-    }
-    .form-switch .form-check-input:checked {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    #filter-status {
-        font-size: 0.875rem;
-    }
-    .collapse {
-        transition: height 0.35s ease;
-    }
-    .border-top {
-        border-color: #dee2e6 !important;
-    }
+    
     /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .d-grid.gap-2.d-md-flex {
-            gap: 0.5rem !important;
+    @media (max-width: 992px) {
+        .card-body {
+            padding: 1rem;
         }
+        
+        .filter-group {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .quick-date {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 0.5rem;
+        }
+        
+        .card {
+            margin-bottom: 1rem;
+        }
+        
+        .card-body {
+            padding: 0.75rem;
+        }
+        
         .btn-lg {
             font-size: 0.875rem;
             padding: 0.5rem 1rem;
         }
+        
         .form-control-lg {
             font-size: 0.875rem;
             padding: 0.5rem 0.75rem;
         }
+        
+        .filter-group {
+            gap: 0.25rem;
+        }
+        
+        .quick-date {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+            margin: 0.1rem;
+        }
+        
+        .page-header {
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-card {
+            margin-bottom: 1rem;
+        }
     }
-    /* Filter group styling */
-    .filter-group {
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    
+    @media (max-width: 576px) {
+        .container-fluid {
+            padding: 0.25rem;
+        }
+        
+        .card-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .card-body {
+            padding: 0.5rem;
+        }
+        
+        .row.g-3 > [class*="col-"] {
+            padding: 0.25rem;
+        }
+        
+        .form-control, .form-select {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .btn {
+            font-size: 0.8rem;
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.75rem;
+        }
+        
+        .filter-section, .download-section {
+            padding: 1rem;
+        }
     }
-    /* Date picker styling */
-    .form-control[type="date"] {
-        padding: 0.75rem;
+    
+    /* Animation and transitions */
+    .card, .btn, .form-control, .form-select {
+        transition: all 0.3s ease;
+    }
+    
+    /* Focus states */
+    .btn:focus, .form-control:focus, .form-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+    
+    /* Hover effects */
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    /* Enhanced border and shadow styles */
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    
+    /* Utility classes */
+    .text-xs {
+        font-size: 0.75rem;
+    }
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+    
+    /* Alert improvements */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    
+    .alert-info {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        color: #0c5460;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+    }
+    
+    .alert-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+    }
+    
+    /* Pagination improvements */
+    .pagination {
+        margin: 0;
+    }
+    
+    .page-link {
+        border: none;
+        color: #5a5c69;
+        margin: 0 2px;
         border-radius: 0.375rem;
-        border: 1px solid #ced4da;
+        transition: all 0.3s ease;
     }
-    .form-control[type="date"]:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    
+    .page-link:hover {
+        background: linear-gradient(45deg, #4e73df, #6c5ce7);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(45deg, #4e73df, #6c5ce7);
+        border-color: transparent;
+    }
+    
+    /* Improved spacing */
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .me-1 {
+        margin-right: 0.25rem !important;
+    }
+    
+    .me-2 {
+        margin-right: 0.5rem !important;
+    }
+    
+    .me-3 {
+        margin-right: 1rem !important;
+    }
+    
+    /* Additional responsive improvements */
+    @media (max-width: 480px) {
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .page-header p {
+            font-size: 0.9rem;
+        }
+        
+        .stats-card .card-body {
+            padding: 1rem !important;
+        }
+        
+        .stats-card h2 {
+            font-size: 1.5rem;
+        }
+        
+        .quick-date {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.3rem;
+        }
+        
+        .btn-lg {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid px-3">
     <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h2 mb-0">Dashboard Pendataan IGD</h1>
-            </div>
+    <div class="page-header text-center mb-4">
+        <div class="container">
+            <h1 class="h2 mb-2 fw-bold">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Dashboard Pendataan IGD
+            </h1>
+            <p class="lead mb-0 opacity-75">
+                Sistem Informasi Pengantar Pasien - RS Indriati Solo Baru
+            </p>
         </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="row mb-4 g-3">
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-gradient-primary text-white shadow-sm rounded-4 border-0 h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient-primary text-white shadow-lg rounded-4 border-0 h-100 stats-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
                             <i class="fas fa-users fa-2x text-white"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="card-title mb-1 text-white-50">Total Pengantar</h6>
+                        <div class="ms-3 flex-grow-1">
+                            <h6 class="card-title mb-1 text-white-50 fw-normal">Total Pengantar</h6>
                             <h2 class="mb-0 fw-bold" id="total-count">{{ $stats['total'] }}</h2>
+                            <small class="text-white-50">Semua Data</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-gradient-info text-white shadow-sm rounded-4 border-0 h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient-info text-white shadow-lg rounded-4 border-0 h-100 stats-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
                             <i class="fas fa-calendar-day fa-2x text-white"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="card-title mb-1 text-white-50">Hari Ini</h6>
+                        <div class="ms-3 flex-grow-1">
+                            <h6 class="card-title mb-1 text-white-50 fw-normal">Hari Ini</h6>
                             <h2 class="mb-0 fw-bold" id="today-count">{{ $stats['today'] }}</h2>
+                            <small class="text-white-50">{{ date('d M Y') }}</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-gradient-warning text-white shadow-sm rounded-4 border-0 h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient-warning text-white shadow-lg rounded-4 border-0 h-100 stats-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
                             <i class="fas fa-clock fa-2x text-white"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="card-title mb-1 text-white-50">Menunggu</h6>
+                        <div class="ms-3 flex-grow-1">
+                            <h6 class="card-title mb-1 text-white-50 fw-normal">Menunggu</h6>
                             <h2 class="mb-0 fw-bold" id="pending-count">{{ $stats['pending'] }}</h2>
+                            <small class="text-white-50">Perlu Verifikasi</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-gradient-success text-white shadow-sm rounded-4 border-0 h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient-success text-white shadow-lg rounded-4 border-0 h-100 stats-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 rounded-circle bg-white bg-opacity-25 p-3">
                             <i class="fas fa-check-circle fa-2x text-white"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="card-title mb-1 text-white-50">Terverifikasi</h6>
+                        <div class="ms-3 flex-grow-1">
+                            <h6 class="card-title mb-1 text-white-50 fw-normal">Terverifikasi</h6>
                             <h2 class="mb-0 fw-bold" id="verified-count">{{ $stats['verified'] }}</h2>
+                            <small class="text-white-50">Sudah Disetujui</small>
                         </div>
                     </div>
                 </div>
@@ -232,35 +642,38 @@
     </div>
 
     <!-- Filters and Search -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-success">
-                <i class="fas fa-filter"></i> Filter & Pencarian Data
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold d-flex align-items-center">
+                <i class="fas fa-filter me-2"></i> Filter & Pencarian Data
             </h6>
-            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
-                <i class="fas fa-sliders-h"></i> Filter Lanjutan
+            <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
+                <i class="fas fa-sliders-h me-1"></i> Filter Lanjutan
             </button>
         </div>
         <div class="card-body">
             <form id="filter-form">
                 <!-- Main Search Row -->
-                <div class="row mb-3">
-                    <div class="col-lg-8 col-md-7 mb-3">
+                <div class="row g-3 mb-3">
+                    <div class="col-lg-8">
                         <label for="search" class="form-label fw-semibold">
                             <i class="fas fa-search text-primary"></i> Pencarian Cepat
                         </label>
                         <input type="text" class="form-control form-control-lg" id="search" name="search" 
                                placeholder="Cari nama pengantar, nama pasien, nomor HP, atau plat nomor..." 
                                value="{{ request('search') }}">
-                        <small class="form-text text-muted">Ketik untuk mencari data secara real-time</small>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Ketik untuk mencari data secara real-time
+                        </small>
                     </div>
-                    <div class="col-lg-4 col-md-5 mb-3 d-flex align-items-end">
+                    <div class="col-lg-4 d-flex align-items-end">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end w-100">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-search"></i> Cari
+                            <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                                <i class="fas fa-search me-1"></i> Cari
                             </button>
-                            <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-sync-alt"></i> Reset
+                            <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-lg flex-fill">
+                                <i class="fas fa-sync-alt me-1"></i> Reset
                             </a>
                         </div>
                     </div>
@@ -268,113 +681,111 @@
 
                 <!-- Advanced Filters (Collapsible) -->
                 <div class="collapse" id="advancedFilters">
-                    <div class="border-top pt-3 mt-3">
-                        <h6 class="text-muted mb-3">
-                            <i class="fas fa-cogs"></i> Filter Lanjutan
+                    <div class="filter-section">
+                        <h6 class="text-muted mb-3 d-flex align-items-center">
+                            <i class="fas fa-cogs me-2"></i> Filter Lanjutan
                         </h6>
                         
-                        <!-- Filter Row 1: Category and Status -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3 col-md-6 mb-3">
+                        <!-- Filter Categories Row -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-lg-3 col-md-6">
                                 <label for="kategori" class="form-label fw-semibold">
                                     <i class="fas fa-tags text-info"></i> Kategori Pengantar
                                 </label>
                                 <select class="form-select" id="kategori" name="kategori">
                                     <option value="">Semua Kategori</option>
                                     <option value="Polisi" {{ request('kategori') == 'Polisi' ? 'selected' : '' }}>
-                                        <i class="fas fa-shield-alt"></i> Polisi
+                                        Polisi
                                     </option>
                                     <option value="Ambulans" {{ request('kategori') == 'Ambulans' ? 'selected' : '' }}>
-                                        <i class="fas fa-ambulance"></i> Ambulans
+                                        Ambulans
                                     </option>
                                     <option value="Perorangan" {{ request('kategori') == 'Perorangan' ? 'selected' : '' }}>
-                                        <i class="fas fa-user"></i> Perorangan
+                                        Perorangan
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="col-lg-3 col-md-6">
                                 <label for="status" class="form-label fw-semibold">
                                     <i class="fas fa-check-circle text-success"></i> Status Verifikasi
                                 </label>
                                 <select class="form-select" id="status" name="status">
                                     <option value="">Semua Status</option>
                                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
-                                        <i class="fas fa-clock"></i> Menunggu
+                                        Menunggu
                                     </option>
                                     <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>
-                                        <i class="fas fa-check"></i> Terverifikasi
+                                        Terverifikasi
                                     </option>
                                     <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
-                                        <i class="fas fa-times"></i> Ditolak
+                                        Ditolak
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="col-lg-3 col-md-6">
                                 <label for="jenis_kelamin" class="form-label fw-semibold">
                                     <i class="fas fa-venus-mars text-warning"></i> Jenis Kelamin
                                 </label>
                                 <select class="form-select" id="jenis_kelamin" name="jenis_kelamin">
                                     <option value="">Semua</option>
                                     <option value="Laki-laki" {{ request('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>
-                                        <i class="fas fa-mars"></i> Laki-laki
+                                        Laki-laki
                                     </option>
                                     <option value="Perempuan" {{ request('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>
-                                        <i class="fas fa-venus"></i> Perempuan
+                                        Perempuan
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="col-lg-3 col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-calendar text-info"></i> Filter Tanggal
                                 </label>
-                                <div class="filter-group">
-                                    <input class="form-check-input" type="checkbox" id="today_only" name="today_only" value="1" 
-                                           {{ request('today_only') ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-normal" for="today_only">
-                                        <i class="fas fa-calendar-day"></i> Tampilkan data hari ini
-                                    </label>
+                                <div class="date-control-group">
+                                    <div class="filter-group">
+                                        <input class="form-check-input" type="checkbox" id="today_only" name="today_only" value="1" 
+                                               {{ request('today_only') ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-normal" for="today_only">
+                                            <i class="fas fa-calendar-day"></i> Hari ini
+                                        </label>
+                                    </div>
+                                    <div class="filter-group">
+                                        <input class="form-check-input" type="checkbox" id="week_only" name="week_only" value="1" 
+                                               {{ request('week_only') ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-normal" for="week_only">
+                                            <i class="fas fa-calendar-week"></i> Minggu ini
+                                        </label>
+                                    </div>
+                                    <div class="filter-group">
+                                        <input class="form-check-input" type="checkbox" id="month_only" name="month_only" value="1" 
+                                               {{ request('month_only') ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-normal" for="month_only">
+                                            <i class="fas fa-calendar-alt"></i> Bulan ini
+                                        </label>
+                                    </div>
+                                    <div class="mt-2">
+                                        <input type="date" class="form-control" id="date_specific" name="date_specific" 
+                                               value="{{ request('date_specific') }}" max="{{ date('Y-m-d') }}"
+                                               placeholder="Pilih tanggal spesifik">
+                                        <small class="form-text text-muted mt-1">
+                                            <i class="fas fa-calendar"></i> Atau pilih tanggal spesifik
+                                        </small>
+                                    </div>
                                 </div>
-                                <div class="filter-group">
-                                    <input class="form-check-input" type="checkbox" id="week_only" name="week_only" value="1" 
-                                           {{ request('week_only') ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-normal" for="week_only">
-                                        <i class="fas fa-calendar-week"></i> Tampilkan data minggu ini
-                                    </label>
-                                </div>
-                                <div class="filter-group">
-                                    <input class="form-check-input" type="checkbox" id="month_only" name="month_only" value="1" 
-                                           {{ request('month_only') ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-normal" for="month_only">
-                                        <i class="fas fa-calendar-alt"></i> Tampilkan data bulan ini
-                                    </label>
-                                </div>
-                                <div class="filter-group">
-                                    <input type="date" class="form-control" id="date_specific" name="date_specific" 
-                                           value="{{ request('date_specific') }}" max="{{ date('Y-m-d') }}">
-                                    <label class="form-label fw-normal" for="date_specific">
-                                        <i class="fas fa-calendar"></i> Pilih Tanggal Spesifik
-                                    </label>
-                                </div>
-                                <small class="form-text text-muted">Pilih satu filter tanggal untuk mempersempit hasil</small>
                             </div>
                         </div>
 
-                        <!-- Action Buttons Row -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button type="button" id="view-all-btn" class="btn btn-info">
-                                            <i class="fas fa-list"></i> Lihat Semua Data
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="clearAllFilters()">
-                                            <i class="fas fa-eraser"></i> Bersihkan Filter
-                                        </button>
-                                    </div>
-                                    <div class="text-muted small">
-                                        <span id="filter-status">Semua filter tidak aktif</span>
-                                    </div>
-                                </div>
+                        <!-- Action Buttons and Status -->
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" id="view-all-btn" class="btn btn-info">
+                                    <i class="fas fa-list me-1"></i> Lihat Semua Data
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearAllFilters()">
+                                    <i class="fas fa-eraser me-1"></i> Bersihkan Filter
+                                </button>
+                            </div>
+                            <div class="filter-status-indicator">
+                                <span id="filter-status">Semua filter tidak aktif</span>
                             </div>
                         </div>
                     </div>
@@ -383,18 +794,226 @@
         </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-success">Data Escort</h6>
+    <!-- Download Section -->
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold d-flex align-items-center">
+                <i class="fas fa-download me-2"></i> Unduh Data
+            </h6>
+            <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#downloadSection" aria-expanded="false" aria-controls="downloadSection">
+                <i class="fas fa-chevron-down me-1"></i> Tampilkan Opsi Unduh
+            </button>
         </div>
-        <div class="card-body">
-            <div id="table-container">
+        <div class="collapse" id="downloadSection">
+            <div class="card-body">
+                <div class="download-section">
+                    <div class="alert alert-info border-0 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle fa-lg me-3"></i>
+                            <div>
+                                <strong>Petunjuk:</strong> Pilih rentang tanggal untuk mengunduh data dalam format CSV. 
+                                Data yang diunduh akan mencakup semua informasi pengantar sesuai dengan filter yang dipilih.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form id="download-form">
+                        @csrf
+                        <!-- Date Range and Quick Selection -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-lg-4">
+                                <label for="download_start_date" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar-alt text-primary"></i> Tanggal Mulai
+                                </label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="download_start_date" 
+                                       name="start_date" 
+                                       max="{{ date('Y-m-d') }}" 
+                                       required>
+                            </div>
+                            <div class="col-lg-4">
+                                <label for="download_end_date" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar-check text-primary"></i> Tanggal Akhir
+                                </label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="download_end_date" 
+                                       name="end_date" 
+                                       max="{{ date('Y-m-d') }}" 
+                                       required>
+                            </div>
+                            <div class="col-lg-4 d-flex align-items-end">
+                                <div class="d-grid gap-2 w-100">
+                                    <button type="button" id="copy-current-filters" class="btn btn-outline-secondary">
+                                        <i class="fas fa-copy me-1"></i> Salin Filter Aktif
+                                    </button>
+                                    <button type="button" id="preview-download-data" class="btn btn-outline-info">
+                                        <i class="fas fa-eye me-1"></i> Preview Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Date Selection -->
+                        <div class="quick-date-section mb-4">
+                            <label class="form-label fw-semibold mb-3">
+                                <i class="fas fa-clock text-info"></i> Pilihan Cepat Tanggal
+                            </label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-days="0">
+                                    <i class="fas fa-calendar-day"></i> Hari Ini
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-days="1">
+                                    <i class="fas fa-calendar"></i> Kemarin
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-days="7">
+                                    <i class="fas fa-calendar-week"></i> 7 Hari
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-days="30">
+                                    <i class="fas fa-calendar-alt"></i> 30 Hari
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-period="current-month">
+                                    <i class="fas fa-calendar"></i> Bulan Ini
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-period="last-month">
+                                    <i class="fas fa-calendar-minus"></i> Bulan Lalu
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm quick-date" data-period="last-3-months">
+                                    <i class="fas fa-calendar-alt"></i> 3 Bulan
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Additional Filters for Download -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-lg-3">
+                                <label for="download_kategori" class="form-label fw-semibold">
+                                    <i class="fas fa-tags text-info"></i> Filter Kategori
+                                </label>
+                                <select class="form-select" id="download_kategori" name="kategori">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="Polisi">Polisi</option>
+                                    <option value="Ambulans">Ambulans</option>
+                                    <option value="Perorangan">Perorangan</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3">
+                                <label for="download_status" class="form-label fw-semibold">
+                                    <i class="fas fa-check-circle text-success"></i> Filter Status
+                                </label>
+                                <select class="form-select" id="download_status" name="status">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending">Menunggu</option>
+                                    <option value="verified">Terverifikasi</option>
+                                    <option value="rejected">Ditolak</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3">
+                                <label for="download_jenis_kelamin" class="form-label fw-semibold">
+                                    <i class="fas fa-venus-mars text-warning"></i> Filter Gender
+                                </label>
+                                <select class="form-select" id="download_jenis_kelamin" name="jenis_kelamin">
+                                    <option value="">Semua</option>
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3">
+                                <label for="download_search" class="form-label fw-semibold">
+                                    <i class="fas fa-search text-primary"></i> Filter Pencarian
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="download_search" 
+                                       name="search" 
+                                       placeholder="Nama, HP, Plat nomor...">
+                            </div>
+                        </div>
+
+                        <!-- Data Preview Section -->
+                        <div class="download-preview" id="download-preview" style="display: none;">
+                            <h6 class="text-info mb-3">
+                                <i class="fas fa-chart-bar me-2"></i> Preview Data yang Akan Diunduh
+                            </h6>
+                            <div class="row g-3 text-center mb-3">
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-primary bg-opacity-10 rounded">
+                                        <span class="h4 text-primary d-block" id="preview-total">-</span>
+                                        <small class="text-muted">Total Record</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-success bg-opacity-10 rounded">
+                                        <span class="h4 text-success d-block" id="preview-verified">-</span>
+                                        <small class="text-muted">Terverifikasi</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-warning bg-opacity-10 rounded">
+                                        <span class="h4 text-warning d-block" id="preview-pending">-</span>
+                                        <small class="text-muted">Menunggu</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-danger bg-opacity-10 rounded">
+                                        <span class="h4 text-danger d-block" id="preview-rejected">-</span>
+                                        <small class="text-muted">Ditolak</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="small text-muted text-center">
+                                <i class="fas fa-info-circle"></i> 
+                                Periode: <span id="preview-period">-</span> | 
+                                Filter aktif: <span id="preview-filters">Tidak ada</span>
+                            </div>
+                        </div>
+
+                        <!-- Download Buttons -->
+                        <div class="text-center">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-download me-2"></i> Unduh Data dalam Format CSV
+                            </h6>
+                            <div class="d-flex justify-content-center">
+                                <button type="submit" name="format" value="csv" class="btn btn-success btn-lg">
+                                    <i class="fas fa-file-csv fa-lg me-2"></i>
+                                    <span>Unduh CSV</span>
+                                    <small class="d-block text-white-50">Kompatibel dengan Excel & Aplikasi Spreadsheet</small>
+                                </button>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-shield-alt me-1"></i> 
+                                    Data akan diunduh sesuai dengan filter dan periode yang dipilih
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold d-flex align-items-center">
+                <i class="fas fa-table me-2"></i> Data Escort
+            </h6>
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-white-50" id="table-info">Menampilkan data pengantar</small>
+                <button class="btn btn-sm btn-outline-light" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div id="table-container" class="position-relative">
                 @include('partials.escort-table', ['escorts' => $escorts])
             </div>
             
             <!-- Pagination -->
-            <div id="pagination-container" class="mt-3">
+            <div id="pagination-container" class="p-3 border-top">
                 {{ $escorts->links() }}
             </div>
         </div>
@@ -402,10 +1021,13 @@
 </div>
 
 <!-- Loading Spinner -->
-<div id="loading" class="d-none">
-    <div class="d-flex justify-content-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+<div id="loading" class="d-none position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
+    <div class="card shadow-lg border-0">
+        <div class="card-body text-center p-4">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h6 class="text-muted mb-0">Memuat data...</h6>
         </div>
     </div>
 </div>
@@ -436,14 +1058,14 @@ $(document).ready(function() {
     // Handle advanced filter toggle button text
     $('#advancedFilters').on('show.bs.collapse', function () {
         const toggleBtn = $('[data-bs-target="#advancedFilters"]');
-        toggleBtn.html('<i class="fas fa-chevron-up"></i> Sembunyikan Filter');
-        toggleBtn.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+        toggleBtn.html('<i class="fas fa-chevron-up me-1"></i> Sembunyikan Filter');
+        toggleBtn.removeClass('btn-outline-light').addClass('btn-light');
     });
     
     $('#advancedFilters').on('hide.bs.collapse', function () {
         const toggleBtn = $('[data-bs-target="#advancedFilters"]');
-        toggleBtn.html('<i class="fas fa-sliders-h"></i> Filter Lanjutan');
-        toggleBtn.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+        toggleBtn.html('<i class="fas fa-sliders-h me-1"></i> Filter Lanjutan');
+        toggleBtn.removeClass('btn-light').addClass('btn-outline-light');
     });
     
     // Ensure filter status is visible when advanced filters are shown
@@ -519,9 +1141,10 @@ $(document).ready(function() {
         const filterStatus = $('#filter-status');
         
         if (activeFilters.length > 0) {
-            searchBtn.html('<i class="fas fa-search"></i> Cari (' + activeFilters.length + ')');
+            searchBtn.html('<i class="fas fa-search me-1"></i> Cari (' + activeFilters.length + ')');
             searchBtn.removeClass('btn-primary').addClass('btn-success');
-            filterStatus.html('<i class="fas fa-filter text-success"></i> ' + activeFilters.length + ' filter aktif: ' + activeFilters.join(', '));
+            filterStatus.html('<i class="fas fa-filter text-success me-1"></i> ' + activeFilters.length + ' filter aktif: ' + activeFilters.join(', '));
+            filterStatus.closest('.filter-status-indicator').removeClass('bg-light').addClass('bg-success bg-opacity-10 border-success');
             
             // Expand advanced filters if any advanced filter is active
             const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only', '#week_only', '#month_only', '#date_specific'];
@@ -533,9 +1156,10 @@ $(document).ready(function() {
                 $('#advancedFilters').collapse('show');
             }
         } else {
-            searchBtn.html('<i class="fas fa-search"></i> Cari');
+            searchBtn.html('<i class="fas fa-search me-1"></i> Cari');
             searchBtn.removeClass('btn-success').addClass('btn-primary');
-            filterStatus.html('Semua filter tidak aktif');
+            filterStatus.html('<i class="fas fa-info-circle me-1"></i> Semua filter tidak aktif');
+            filterStatus.closest('.filter-status-indicator').removeClass('bg-success bg-opacity-10 border-success').addClass('bg-light');
         }
     }
     
@@ -558,6 +1182,423 @@ $(document).ready(function() {
     
     // Make clearAllFilters available globally
     window.clearAllFilters = clearAllFilters;
+    
+    // Download Section Functionality
+    
+    // Handle download section toggle button text
+    $('#downloadSection').on('show.bs.collapse', function () {
+        const toggleBtn = $('[data-bs-target="#downloadSection"]');
+        toggleBtn.html('<i class="fas fa-chevron-up me-1"></i> Sembunyikan Opsi Unduh');
+        toggleBtn.removeClass('btn-outline-light').addClass('btn-light');
+    });
+    
+    $('#downloadSection').on('hide.bs.collapse', function () {
+        const toggleBtn = $('[data-bs-target="#downloadSection"]');
+        toggleBtn.html('<i class="fas fa-chevron-down me-1"></i> Tampilkan Opsi Unduh');
+        toggleBtn.removeClass('btn-light').addClass('btn-outline-light');
+    });
+    
+    // Quick date selection functionality
+    $('.quick-date').on('click', function() {
+        const button = $(this);
+        const days = button.data('days');
+        const period = button.data('period');
+        
+        let startDate, endDate;
+        const today = new Date();
+        
+        if (period) {
+            if (period === 'current-month') {
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = today;
+            } else if (period === 'last-month') {
+                const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                startDate = lastMonth;
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            } else if (period === 'last-3-months') {
+                startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+                endDate = today;
+            }
+        } else {
+            if (days === 0) {
+                startDate = today;
+                endDate = today;
+            } else if (days === 1) {
+                const yesterday = new Date(today.getTime() - (24 * 60 * 60 * 1000));
+                startDate = yesterday;
+                endDate = yesterday;
+            } else {
+                startDate = new Date(today.getTime() - (days * 24 * 60 * 60 * 1000));
+                endDate = today;
+            }
+        }
+        
+        $('#download_start_date').val(formatDateForInput(startDate));
+        $('#download_end_date').val(formatDateForInput(endDate));
+        
+        // Visual feedback
+        $('.quick-date').removeClass('btn-info').addClass('btn-outline-info');
+        button.removeClass('btn-outline-info').addClass('btn-info');
+        
+        // Auto-trigger preview if dates are selected
+        setTimeout(() => {
+            $('.quick-date').removeClass('btn-info').addClass('btn-outline-info');
+            if ($('#download_start_date').val() && $('#download_end_date').val()) {
+                $('#preview-download-data').trigger('click');
+            }
+        }, 500);
+    });
+    
+    // Date validation
+    $('#download_start_date, #download_end_date').on('change', function() {
+        const startDate = $('#download_start_date').val();
+        const endDate = $('#download_end_date').val();
+        
+        if (startDate && endDate) {
+            if (new Date(startDate) > new Date(endDate)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanggal Tidak Valid',
+                    text: 'Tanggal akhir harus sama atau lebih besar dari tanggal mulai',
+                    confirmButtonColor: '#ffc107'
+                });
+                $(this).val('');
+            }
+        }
+    });
+    
+    // Copy current filters to download form
+    $('#copy-current-filters').on('click', function() {
+        const currentFilters = {
+            kategori: $('#kategori').val(),
+            status: $('#status').val(),
+            jenis_kelamin: $('#jenis_kelamin').val(),
+            search: $('#search').val()
+        };
+        
+        $('#download_kategori').val(currentFilters.kategori);
+        $('#download_status').val(currentFilters.status);
+        $('#download_jenis_kelamin').val(currentFilters.jenis_kelamin);
+        $('#download_search').val(currentFilters.search);
+        
+        // Show feedback
+        const button = $(this);
+        const originalHtml = button.html();
+        button.html('<i class="fas fa-check"></i> Filter Disalin!').addClass('btn-success').removeClass('btn-outline-secondary');
+        
+        setTimeout(() => {
+            button.html(originalHtml).removeClass('btn-success').addClass('btn-outline-secondary');
+        }, 2000);
+    });
+
+    // Preview download data functionality
+    $('#preview-download-data').on('click', function() {
+        const startDate = $('#download_start_date').val();
+        const endDate = $('#download_end_date').val();
+        
+        if (!startDate || !endDate) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tanggal Belum Dipilih',
+                text: 'Harap pilih tanggal mulai dan tanggal akhir terlebih dahulu',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+
+        // Validate date range
+        if (new Date(startDate) > new Date(endDate)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tanggal Tidak Valid',
+                text: 'Tanggal akhir harus sama atau lebih besar dari tanggal mulai',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+
+        // Check if date range is too large (more than 1 year)
+        const daysDiff = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+        if (daysDiff > 365) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rentang Tanggal Terlalu Besar',
+                text: 'Rentang tanggal maksimal adalah 1 tahun (365 hari)',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+
+        // Show loading state
+        const button = $(this);
+        const originalHtml = button.html();
+        button.html('<i class="fas fa-spinner fa-spin me-1"></i> Memuat...').prop('disabled', true);
+        
+        // Prepare data for preview
+        const filters = {
+            start_date: startDate,
+            end_date: endDate,
+            kategori: $('#download_kategori').val(),
+            status: $('#download_status').val(),
+            jenis_kelamin: $('#download_jenis_kelamin').val(),
+            search: $('#download_search').val()
+        };
+
+        // Make AJAX request to get preview data
+        $.ajax({
+            url: '{{ route("dashboard") }}',
+            method: 'GET',
+            data: {
+                ...filters,
+                preview: true,
+                ajax: true
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Update preview section
+                    $('#preview-total').text(response.stats?.total || 0);
+                    $('#preview-verified').text(response.stats?.verified || 0);
+                    $('#preview-pending').text(response.stats?.pending || 0);
+                    $('#preview-rejected').text(response.stats?.rejected || 0);
+                    
+                    // Update period display
+                    const startFormatted = formatDateIndonesian(startDate);
+                    const endFormatted = formatDateIndonesian(endDate);
+                    $('#preview-period').text(`${startFormatted} - ${endFormatted}`);
+                    
+                    // Update active filters display
+                    const activeFilters = [];
+                    if (filters.kategori) activeFilters.push(`Kategori: ${filters.kategori}`);
+                    if (filters.status) activeFilters.push(`Status: ${filters.status}`);
+                    if (filters.jenis_kelamin) activeFilters.push(`Gender: ${filters.jenis_kelamin}`);
+                    if (filters.search) activeFilters.push(`Pencarian: ${filters.search}`);
+                    
+                    $('#preview-filters').text(activeFilters.length > 0 ? activeFilters.join(', ') : 'Tidak ada');
+                    
+                    // Show preview section with animation
+                    $('#download-preview').slideDown();
+                    
+                    // Success feedback
+                    button.html('<i class="fas fa-check me-1"></i> Data Berhasil Dimuat').addClass('btn-success').removeClass('btn-outline-info');
+                    
+                    setTimeout(() => {
+                        button.html(originalHtml).removeClass('btn-success').addClass('btn-outline-info').prop('disabled', false);
+                    }, 2000);
+                } else {
+                    throw new Error(response.message || 'Response status tidak success');
+                }
+            },
+            error: function(xhr) {
+                console.error('Preview failed:', xhr);
+                let errorMessage = 'Terjadi kesalahan saat memuat preview data. Silakan coba lagi.';
+                
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = Object.values(xhr.responseJSON.errors).flat();
+                    errorMessage = 'Validasi gagal: ' + errors.join(', ');
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Preview',
+                    text: errorMessage,
+                    confirmButtonColor: '#dc3545'
+                });
+                
+                button.html(originalHtml).prop('disabled', false);
+            }
+        });
+    });
+    
+    // Handle download form submission
+    $('#download-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const startDate = $('#download_start_date').val();
+        const endDate = $('#download_end_date').val();
+        
+        // Validation
+        if (!startDate || !endDate) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Tidak Lengkap',
+                text: 'Harap pilih tanggal mulai dan tanggal akhir',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        
+        if (new Date(startDate) > new Date(endDate)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tanggal Tidak Valid',
+                text: 'Tanggal akhir harus sama atau lebih besar dari tanggal mulai',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        
+        // Check date range (max 1 year)
+        const daysDiff = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+        if (daysDiff > 365) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rentang Tanggal Terlalu Besar',
+                text: 'Rentang tanggal maksimal adalah 1 tahun (365 hari)',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        
+        // Show confirmation with details
+        const startDateFormatted = formatDateIndonesian(startDate);
+        const endDateFormatted = formatDateIndonesian(endDate);
+        const formatName = 'CSV';
+        const formatIcon = 'fas fa-file-csv';
+        
+        Swal.fire({
+            title: `Unduh Data ${formatName}`,
+            html: `
+                <div class="text-left">
+                    <p><strong>Rentang Tanggal:</strong><br>
+                    ${startDateFormatted} sampai ${endDateFormatted}</p>
+                    <p><strong>Periode:</strong> ${daysDiff + 1} hari</p>
+                    <p><strong>Format:</strong> ${formatName}</p>
+                    <div class="alert alert-info mt-3">
+                        <i class="${formatIcon}"></i> 
+                        File akan diunduh secara otomatis setelah Anda mengkonfirmasi.
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `<i class="${formatIcon}"></i> Unduh ${formatName}`,
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: {
+                popup: 'swal-wide',
+                content: 'text-left'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                initiateDownload();
+            }
+        });
+    });
+    
+    // Function to initiate download
+    function initiateDownload() {
+        // Show loading
+        Swal.fire({
+            title: 'Memproses Download...',
+            html: `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang memproses data, mohon tunggu...</p>
+                    <small class="text-muted">Waktu proses tergantung jumlah data yang diunduh</small>
+                </div>
+            `,
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+        formData.append('start_date', $('#download_start_date').val());
+        formData.append('end_date', $('#download_end_date').val());
+        formData.append('kategori', $('#download_kategori').val());
+        formData.append('status', $('#download_status').val());
+        formData.append('jenis_kelamin', $('#download_jenis_kelamin').val());
+        formData.append('search', $('#download_search').val());
+        
+        // Use CSV download URL
+        const url = '{{ route("dashboard.download.csv") }}';
+        
+        // Use fetch API for download
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            
+            // Generate filename
+            const startDate = $('#download_start_date').val();
+            const endDate = $('#download_end_date').val();
+            const filename = `Data_Escort_IGD_${startDate}_sampai_${endDate}_${new Date().getTime()}.csv`;
+            
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Download Berhasil!',
+                text: `File CSV telah diunduh: ${filename}`,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        })
+        .catch(error => {
+            console.error('Download failed:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Download Gagal',
+                text: 'Terjadi kesalahan saat mengunduh file. Silakan coba lagi.',
+                confirmButtonColor: '#dc3545'
+            });
+        });
+    }
+    
+    // Utility function to format date for input
+    function formatDateForInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    // Utility function to format date in Indonesian
+    function formatDateIndonesian(dateString) {
+        const months = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        
+        const date = new Date(dateString);
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        
+        return `${day} ${month} ${year}`;
+    }
     
     // View All button handler
     $('#view-all-btn').on('click', function(e) {
