@@ -34,6 +34,11 @@ Route::get('/qr-demo', function () {
     return view('qr-demo', compact('qrUrl', 'formUrl'));
 })->name('qr.demo');
 
+// Excel implementation test page
+Route::get('/excel-test', function () {
+    return view('excel-test');
+})->name('excel.test');
+
 // Session and submission tracking routes (public for form debugging)
 Route::get('/submission/{submissionId}', [EscortDataController::class, 'getSubmissionDetails'])->name('submission.details');
 
@@ -47,6 +52,7 @@ Route::middleware('auth')->group(function () {
     
     // Data export/download routes
     Route::post('/dashboard/download/csv', [EscortDataController::class, 'downloadCsv'])->name('dashboard.download.csv');
+    Route::post('/dashboard/download/excel', [EscortDataController::class, 'downloadExcel'])->name('dashboard.download.excel');
     
     // Admin utilities
     Route::post('/admin/clear-session-data', [EscortDataController::class, 'clearOldSessionData'])->name('admin.clear-session');

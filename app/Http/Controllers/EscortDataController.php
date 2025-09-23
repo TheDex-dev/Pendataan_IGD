@@ -13,7 +13,9 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use App\Services\CsvExportService;
+use App\Exports\EscortExport;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EscortDataController extends Controller
 {
@@ -718,6 +720,70 @@ class EscortDataController extends Controller
         }
     }
     
+    /**
+     * Download escort data as Excel file
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function downloadExcel(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'kategori' => 'nullable|in:Polisi,Ambulans,Perorangan',
+            'status' => 'nullable|in:pending,verified,rejected',
+            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'search' => 'nullable|string|max:255'
+        ]);
+
+        try {
+            $filters = $request->only(['kategori', 'status', 'jenis_kelamin', 'search']);
+            $startDate = $request->start_date;
+            $endDate = $request->end_date;
+            
+            // Generate filename with date range
+            $filename = 'Data_Escort_IGD_' . 
+                       Carbon::parse($startDate)->format('d-m-Y') . '_sampai_' . 
+                       Carbon::parse($endDate)->format('d-m-Y') . '_' . 
+                       now()->format('His') . '.xlsx';
+
+            // Log download request
+            Log::info('Excel export requested', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'filters' => $filters,
+                'filename' => $filename,
+                'ip' => $request->ip(),
+                'user' => auth()->user()->name ?? 'Unknown'
+            ]);
+
+            // Track download in session
+            Session::put('last_excel_download', [
+                'timestamp' => now(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'filters' => $filters,
+                'filename' => $filename
+            ]);
+
+            // Generate Excel file using EscortExport
+            return Excel::download(
+                new EscortExport($startDate, $endDate, $filters), 
+                $filename
+            );
+
+        } catch (\Exception $e) {
+            Log::error('Excel export failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
+            return back()->with('error', 'Gagal mengunduh file Excel: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Download escort data as CSV file
      * 

@@ -972,9 +972,14 @@
                         <!-- Download Buttons -->
                         <div class="text-center">
                             <h6 class="text-muted mb-3">
-                                <i class="fas fa-download me-2"></i> Unduh Data dalam Format CSV
+                                <i class="fas fa-download me-2"></i> Unduh Data dalam Format Pilihan
                             </h6>
-                            <div class="d-flex justify-content-center">
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <button type="submit" name="format" value="excel" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-file-excel fa-lg me-2"></i>
+                                    <span>Unduh Excel</span>
+                                    <small class="d-block text-white-50">Format .xlsx dengan styling dan formula</small>
+                                </button>
                                 <button type="submit" name="format" value="csv" class="btn btn-success btn-lg">
                                     <i class="fas fa-file-csv fa-lg me-2"></i>
                                     <span>Unduh CSV</span>
@@ -1418,6 +1423,7 @@ $(document).ready(function() {
         const form = $(this);
         const startDate = $('#download_start_date').val();
         const endDate = $('#download_end_date').val();
+        const format = e.originalEvent.submitter.value; // Get the format from the clicked button
         
         // Validation
         if (!startDate || !endDate) {
@@ -1455,8 +1461,9 @@ $(document).ready(function() {
         // Show confirmation with details
         const startDateFormatted = formatDateIndonesian(startDate);
         const endDateFormatted = formatDateIndonesian(endDate);
-        const formatName = 'CSV';
-        const formatIcon = 'fas fa-file-csv';
+        const formatName = format === 'excel' ? 'Excel' : 'CSV';
+        const formatIcon = format === 'excel' ? 'fas fa-file-excel' : 'fas fa-file-csv';
+        const formatColor = format === 'excel' ? '#1f4e79' : '#28a745';
         
         Swal.fire({
             title: `Unduh Data ${formatName}`,
@@ -1469,12 +1476,13 @@ $(document).ready(function() {
                     <div class="alert alert-info mt-3">
                         <i class="${formatIcon}"></i> 
                         File akan diunduh secara otomatis setelah Anda mengkonfirmasi.
+                        ${format === 'excel' ? '<br><small>Format Excel termasuk styling, formatting, dan struktur yang rapi.</small>' : '<br><small>Format CSV cocok untuk import ke berbagai aplikasi spreadsheet.</small>'}
                     </div>
                 </div>
             `,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#28a745',
+            confirmButtonColor: formatColor,
             cancelButtonColor: '#6c757d',
             confirmButtonText: `<i class="${formatIcon}"></i> Unduh ${formatName}`,
             cancelButtonText: 'Batal',
@@ -1485,22 +1493,25 @@ $(document).ready(function() {
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                initiateDownload();
+                initiateDownload(format);
             }
         });
     });
     
     // Function to initiate download
-    function initiateDownload() {
+    function initiateDownload(format = 'csv') {
         // Show loading
+        const formatName = format === 'excel' ? 'Excel' : 'CSV';
+        const formatIcon = format === 'excel' ? 'fas fa-file-excel' : 'fas fa-file-csv';
+        
         Swal.fire({
-            title: 'Memproses Download...',
+            title: `Memproses Download ${formatName}...`,
             html: `
                 <div class="text-center">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p>Sedang memproses data, mohon tunggu...</p>
+                    <p>Sedang memproses data ${formatName.toLowerCase()}, mohon tunggu...</p>
                     <small class="text-muted">Waktu proses tergantung jumlah data yang diunduh</small>
                 </div>
             `,
@@ -1522,8 +1533,8 @@ $(document).ready(function() {
         formData.append('jenis_kelamin', $('#download_jenis_kelamin').val());
         formData.append('search', $('#download_search').val());
         
-        // Use CSV download URL
-        const url = '{{ route("dashboard.download.csv") }}';
+        // Choose the correct URL based on format
+        const url = format === 'excel' ? '{{ route("dashboard.download.excel") }}' : '{{ route("dashboard.download.csv") }}';
         
         // Use fetch API for download
         fetch(url, {
@@ -1549,7 +1560,8 @@ $(document).ready(function() {
             // Generate filename
             const startDate = $('#download_start_date').val();
             const endDate = $('#download_end_date').val();
-            const filename = `Data_Escort_IGD_${startDate}_sampai_${endDate}_${new Date().getTime()}.csv`;
+            const fileExtension = format === 'excel' ? 'xlsx' : 'csv';
+            const filename = `Data_Escort_IGD_${startDate}_sampai_${endDate}_${new Date().getTime()}.${fileExtension}`;
             
             a.download = filename;
             document.body.appendChild(a);
@@ -1561,8 +1573,15 @@ $(document).ready(function() {
             Swal.fire({
                 icon: 'success',
                 title: 'Download Berhasil!',
-                text: `File CSV telah diunduh: ${filename}`,
-                timer: 3000,
+                html: `
+                    <div class="text-center">
+                        <i class="${formatIcon} fa-3x text-${format === 'excel' ? 'primary' : 'success'} mb-3"></i>
+                        <p>File ${formatName} telah diunduh:</p>
+                        <strong>${filename}</strong>
+                        ${format === 'excel' ? '<br><small class="text-muted">File Excel dapat dibuka dengan Microsoft Excel, LibreOffice Calc, atau Google Sheets</small>' : '<br><small class="text-muted">File CSV dapat dibuka dengan Excel atau aplikasi spreadsheet lainnya</small>'}
+                    </div>
+                `,
+                timer: 4000,
                 showConfirmButton: false
             });
         })
@@ -1571,7 +1590,7 @@ $(document).ready(function() {
             Swal.fire({
                 icon: 'error',
                 title: 'Download Gagal',
-                text: 'Terjadi kesalahan saat mengunduh file. Silakan coba lagi.',
+                text: `Terjadi kesalahan saat mengunduh file ${formatName}. Silakan coba lagi.`,
                 confirmButtonColor: '#dc3545'
             });
         });
