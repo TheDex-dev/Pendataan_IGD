@@ -58,6 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/clear-session-data', [EscortDataController::class, 'clearOldSessionData'])->name('admin.clear-session');
 });
 
+// CSRF Token endpoint for SPA/API clients
+Route::get('/csrf-token', function () {
+    return response()->json([
+        'csrf_token' => csrf_token()
+    ]);
+});
+
 // Redirect root to dashboard if authenticated, otherwise to login
 Route::get('/', function () {
     if (auth()->check()) {
