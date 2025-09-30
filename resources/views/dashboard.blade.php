@@ -126,40 +126,43 @@
                         <div class="col-lg-3 col-md-6">
                             <label for="status" class="form-label">Status Verifikasi</label>
                             <select class="form-select" id="status" name="status">
-                                <option value="">Semua Status</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
-                                <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Terverifikasi</option>
-                                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
+                                <option value="">Semua</option>
+                                <option value="pending" @if(request('status') == 'pending') selected @endif>Menunggu</option>
+                                <option value="verified" @if(request('status') == 'verified') selected @endif>Terverifikasi</option>
+                                <option value="rejected" @if(request('status') == 'rejected') selected @endif>Ditolak</option>
                             </select>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
                             <select class="form-select" id="jenis_kelamin" name="jenis_kelamin">
                                 <option value="">Semua</option>
-                                <option value="Laki-laki" {{ request('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                <option value="Perempuan" {{ request('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                                <option value="Laki-laki" @if(request('jenis_kelamin') == 'Laki-laki') selected @endif>Laki-laki</option>
+                                <option value="Perempuan" @if(request('jenis_kelamin') == 'Perempuan') selected @endif>Perempuan</option>
                             </select>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Filter Tanggal Cepat</label>
                             <div class="d-flex flex-wrap gap-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="today_only" name="today_only" value="1" {{ request('today_only') ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="today_only">Hari ini</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="week_only" name="week_only" value="1" {{ request('week_only') ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="week_only">Minggu ini</label>
-                                </div>
-                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="month_only" name="month_only" value="1" {{ request('month_only') ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="month_only">Bulan ini</label>
-                                </div>
+                                <input type="checkbox" class="btn-check" id="today_only" name="today_only" value="1" autocomplete="off" @if(request('today_only')) checked @endif>
+                                <label class="btn btn-sm btn-outline-secondary" for="today_only">Hari Ini</label>
+
+                                <input type="checkbox" class="btn-check" id="week_only" name="week_only" value="1" autocomplete="off" @if(request('week_only')) checked @endif>
+                                <label class="btn btn-sm btn-outline-secondary" for="week_only">Minggu Ini</label>
+
+                                <input type="checkbox" class="btn-check" id="month_only" name="month_only" value="1" autocomplete="off" @if(request('month_only')) checked @endif>
+                                <label class="btn btn-sm btn-outline-secondary" for="month_only">Bulan Ini</label>
                             </div>
-                             <div class="mt-2">
-                                <label for="date_specific" class="form-label small">Atau Pilih Tanggal Spesifik</label>
-                                <input type="date" class="form-control form-control-sm" id="date_specific" name="date_specific" value="{{ request('date_specific') }}" max="{{ date('Y-m-d') }}">
-                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-lg-3">
+                            <label for="date_specific" class="form-label">Tanggal Spesifik</label>
+                            <input type="date" class="form-control" id="date_specific" name="date_specific" value="{{ request('date_specific') }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6 ms-auto d-flex align-items-end">
+                             <button type="button" id="view-all-data" class="btn btn-info w-100">
+                                <i class="fas fa-list me-1"></i> Lihat Semua Data
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -270,9 +273,14 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-success">Data Pengantar Pasien</h6>
-            <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
-                <i class="fas fa-sync-alt me-1"></i> Refresh Tabel
-            </button>
+            <div class="d-flex gap-2">
+                <button id="back-to-pagination" class="btn btn-sm btn-outline-info d-none">
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Pagination
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh Tabel
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div id="table-container">
@@ -299,6 +307,9 @@ $(document).ready(function() {
     // Note: The JavaScript logic from the original file remains largely unchanged 
     // as it controls functionality tied to element IDs and classes which have been preserved.
     // The visual changes are handled by the new CSS.
+    
+    // Make loadDataFromUrl globally available for table navigation
+    window.loadDataFromUrl = loadDataFromUrl;
     
     // Load initial data
     loadData();
@@ -344,6 +355,104 @@ $(document).ready(function() {
             });
         }
         loadData();
+    });
+
+    // View All Data button functionality
+    $('#view-all-data').on('click', function() {
+        const button = $(this);
+        const originalHtml = button.html();
+        
+        // Show confirmation dialog
+        Swal.fire({
+            title: 'Mode Tampil Semua Data?',
+            html: 'Anda akan masuk ke mode tampil semua data dengan navigasi halaman yang disederhanakan. Filter yang aktif akan tetap berlaku.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#17a2b8',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-eye me-1"></i> Ya, Aktifkan Mode',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> Batal',
+            customClass: {
+                popup: 'swal-wide'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading state
+                button.html('<i class="fas fa-spinner fa-spin me-1"></i> Memuat...').prop('disabled', true);
+                
+                // Set view mode to 'all' and load first page
+                window.viewAllMode = true;
+                
+                // Get current filters and add view_all_mode parameter
+                const formData = $('#filter-form').serialize();
+                const url = '{{ route("dashboard") }}?' + formData + '&view_all_mode=true&per_page=50';
+                
+                // Load data with enhanced pagination
+                loadDataFromUrl(url, function(response) {
+                    // Success callback
+                    button.html(originalHtml).prop('disabled', false);
+                    
+                    // Show back to pagination button
+                    $('#back-to-pagination').removeClass('d-none');
+                    
+                    // Update pagination container with custom navigation
+                    updateViewAllPagination(response);
+                    
+                    Swal.fire({
+                        title: 'Mode Tampil Semua Aktif!',
+                        text: 'Sekarang Anda dapat melihat semua data dengan navigasi yang disederhanakan.',
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }, function(xhr) {
+                    // Error callback
+                    button.html(originalHtml).prop('disabled', false);
+                    window.viewAllMode = false;
+                    
+                    // Show detailed error information
+                    let errorMsg = 'Terjadi kesalahan saat mengaktifkan mode tampil semua.';
+                    if (xhr.responseText) {
+                        errorMsg += '\\n\\nDetail: ' + xhr.responseText.substring(0, 200);
+                    }
+                    if (xhr.status) {
+                        errorMsg += '\\n\\nStatus: ' + xhr.status;
+                    }
+                    
+                    Swal.fire({
+                        title: 'Gagal Mengaktifkan Mode',
+                        text: errorMsg,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            }
+        });
+    });
+
+    // Back to pagination button functionality
+    $('#back-to-pagination').on('click', function() {
+        // Hide the back button
+        $(this).addClass('d-none');
+        
+        // Exit view all mode
+        window.viewAllMode = false;
+        
+        // Reload data with normal pagination
+        loadData();
+        
+        // Show success message
+        Swal.fire({
+            title: 'Kembali ke Mode Normal',
+            text: 'Data telah dikembalikan ke mode pagination normal.',
+            icon: 'info',
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
     });
     
     // Download Section Functionality
@@ -517,27 +626,77 @@ $(document).ready(function() {
 
     function loadData() {
         let formData = $('#filter-form').serialize();
-        loadDataFromUrl('{{ route("dashboard") }}?' + formData);
+        let url = '{{ route("dashboard") }}?' + formData;
+        
+        // Add view_all_mode parameter if in view all mode
+        if (window.viewAllMode) {
+            url += '&view_all_mode=true&per_page=50';
+        }
+        
+        loadDataFromUrl(url);
     }
     
-    function loadDataFromUrl(url) {
+    function loadDataFromUrl(url, successCallback, errorCallback) {
         $('#loading').removeClass('d-none');
+        
         $.ajax({
             url: url,
             type: 'GET',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             success: function(response) {
-                $('#table-container').html(response.html);
-                $('#pagination-container').html(response.pagination);
-                $('#total-count').text(response.stats.total);
-                $('#today-count').text(response.stats.today);
-                $('#pending-count').text(response.stats.pending);
-                $('#verified-count').text(response.stats.verified);
-                $('#loading').addClass('d-none');
+                try {
+                    $('#table-container').html(response.html);
+                    
+                    // Handle pagination based on mode
+                    if (window.viewAllMode && response.view_all_mode) {
+                        updateViewAllPagination(response);
+                    } else {
+                        $('#pagination-container').html(response.pagination);
+                    }
+                    
+                    $('#total-count').text(response.stats.total);
+                    $('#today-count').text(response.stats.today);
+                    $('#pending-count').text(response.stats.pending);
+                    $('#verified-count').text(response.stats.verified);
+                    $('#loading').addClass('d-none');
+                    
+                    // Handle view_all mode UI changes
+                    if (response.view_all_mode || window.viewAllMode) {
+                        $('#back-to-pagination').removeClass('d-none');
+                    } else {
+                        $('#back-to-pagination').addClass('d-none');
+                    }
+                    
+                    // Call success callback if provided
+                    if (typeof successCallback === 'function') {
+                        successCallback(response);
+                    }
+                } catch (error) {
+                    if (typeof errorCallback === 'function') {
+                        errorCallback({ responseText: 'Error processing response: ' + error.message });
+                    } else {
+                        alert('Terjadi kesalahan saat memproses data: ' + error.message);
+                    }
+                }
             },
             error: function(xhr) {
                 $('#loading').addClass('d-none');
-                alert('Terjadi kesalahan saat memuat data');
+                
+                // Call error callback if provided, otherwise show default alert
+                if (typeof errorCallback === 'function') {
+                    errorCallback(xhr);
+                } else {
+                    let errorMessage = 'Terjadi kesalahan saat memuat data';
+                    if (xhr.responseText) {
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            errorMessage += ': ' + (errorResponse.message || errorResponse.error || 'Unknown error');
+                        } catch (e) {
+                            errorMessage += ': ' + xhr.responseText.substring(0, 100);
+                        }
+                    }
+                    alert(errorMessage);
+                }
             }
         });
     }
@@ -601,6 +760,62 @@ $(document).ready(function() {
             }
         });
     }
+
+    // View All Mode Pagination Functions
+    function updateViewAllPagination(response) {
+        if (!response.pagination_info) {
+            console.warn('No pagination_info in response');
+            $('#pagination-container').html('<div class="text-muted text-center">Tidak ada informasi pagination</div>');
+            return;
+        }
+        
+        try {
+            const info = response.pagination_info;
+            const currentPage = info.current_page || 1;
+            const lastPage = info.last_page || 1;
+            const total = info.total || 0;
+            const from = info.from || 0;
+            const to = info.to || 0;
+            
+            let paginationHtml = `
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted small">
+                        Menampilkan ${from} sampai ${to} dari ${total} hasil
+                        <span class="badge bg-info ms-2">Mode Tampil Semua</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary view-all-nav" 
+                                data-page="${currentPage - 1}" 
+                                ${currentPage <= 1 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left me-1"></i> Sebelumnya
+                        </button>
+                        <span class="btn btn-sm btn-light disabled">
+                            Halaman ${currentPage} dari ${lastPage}
+                        </span>
+                        <button class="btn btn-sm btn-outline-primary view-all-nav" 
+                                data-page="${currentPage + 1}" 
+                                ${currentPage >= lastPage ? 'disabled' : ''}>
+                            Selanjutnya <i class="fas fa-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            $('#pagination-container').html(paginationHtml);
+        } catch (error) {
+            $('#pagination-container').html('<div class="text-danger text-center">Error loading pagination</div>');
+        }
+    }
+    
+    // Handle view-all navigation clicks
+    $(document).on('click', '.view-all-nav:not([disabled])', function() {
+        const page = $(this).data('page');
+        if (page && page > 0) {
+            const formData = $('#filter-form').serialize();
+            const url = '{{ route("dashboard") }}?' + formData + '&view_all_mode=true&per_page=50&page=' + page;
+            loadDataFromUrl(url);
+        }
+    });
 
     // Utility functions
     function formatDateForInput(date) {

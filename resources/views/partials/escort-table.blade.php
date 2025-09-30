@@ -25,6 +25,52 @@
         </div>
     @endif
     <div class="card-body p-0">
+        <!-- Navigation buttons for view all mode -->
+        @if(request('view_all_mode') == 'true')
+            <div class="view-all-navigation border-bottom">
+                <div class="d-flex justify-content-between align-items-center py-3 px-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-info d-flex align-items-center">
+                            <i class="fas fa-list-ul me-2"></i> 
+                            Mode Tampil Semua Data
+                        </span>
+                        @if(method_exists($escorts, 'total'))
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Halaman {{ $escorts->currentPage() }} dari {{ $escorts->lastPage() }} 
+                                ({{ number_format($escorts->total()) }} total data)
+                            </small>
+                        @endif
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Table Navigation">
+                        @if(method_exists($escorts, 'currentPage'))
+                            <button class="btn btn-sm btn-outline-primary table-nav-btn" 
+                                    data-action="previous" 
+                                    data-page="{{ $escorts->currentPage() - 1 }}"
+                                    title="Halaman Sebelumnya"
+                                    {{ $escorts->currentPage() <= 1 ? 'disabled' : '' }}>
+                                <i class="fas fa-chevron-left me-1"></i> 
+                                <span class="d-none d-md-inline">Sebelumnya</span>
+                                <span class="d-md-none">Prev</span>
+                            </button>
+                            <span class="btn btn-sm btn-light disabled d-flex align-items-center">
+                                <small>{{ $escorts->currentPage() }} / {{ $escorts->lastPage() }}</small>
+                            </span>
+                            <button class="btn btn-sm btn-outline-primary table-nav-btn" 
+                                    data-action="next" 
+                                    data-page="{{ $escorts->currentPage() + 1 }}"
+                                    title="Halaman Selanjutnya"
+                                    {{ $escorts->currentPage() >= $escorts->lastPage() ? 'disabled' : '' }}>
+                                <span class="d-none d-md-inline">Selanjutnya</span>
+                                <span class="d-md-none">Next</span>
+                                <i class="fas fa-chevron-right ms-1"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+        
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
@@ -152,6 +198,46 @@
     </table>
 </div>
 
+        <!-- Bottom navigation for view all mode -->
+        @if(request('view_all_mode') == 'true')
+            <div class="view-all-bottom-navigation border-top">
+                <div class="d-flex justify-content-between align-items-center py-3 px-4">
+                    <div class="text-muted small d-flex align-items-center">
+                        <i class="fas fa-table me-2"></i>
+                        @if(method_exists($escorts, 'total'))
+                            Menampilkan 
+                            <strong class="mx-1">{{ number_format($escorts->firstItem() ?? 0) }}</strong> 
+                            sampai 
+                            <strong class="mx-1">{{ number_format($escorts->lastItem() ?? 0) }}</strong> 
+                            dari 
+                            <strong class="mx-1">{{ number_format($escorts->total()) }}</strong> 
+                            hasil
+                        @endif
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Bottom Table Navigation">
+                        @if(method_exists($escorts, 'currentPage'))
+                            <button class="btn btn-sm btn-outline-primary table-nav-btn" 
+                                    data-action="previous" 
+                                    data-page="{{ $escorts->currentPage() - 1 }}"
+                                    title="Halaman Sebelumnya"
+                                    {{ $escorts->currentPage() <= 1 ? 'disabled' : '' }}>
+                                <i class="fas fa-chevron-left me-1"></i> 
+                                <span class="d-none d-sm-inline">Sebelumnya</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary table-nav-btn" 
+                                    data-action="next" 
+                                    data-page="{{ $escorts->currentPage() + 1 }}"
+                                    title="Halaman Selanjutnya"
+                                    {{ $escorts->currentPage() >= $escorts->lastPage() ? 'disabled' : '' }}>
+                                <span class="d-none d-sm-inline">Selanjutnya</span>
+                                <i class="fas fa-chevron-right ms-1"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Handler untuk tombol detail
@@ -248,6 +334,64 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Handler untuk navigasi tabel (view all mode)
+    $(document).on('click', '.table-nav-btn:not([disabled])', function(e) {
+        e.preventDefault();
+        
+        const button = $(this);
+        const action = button.data('action');
+        const page = button.data('page');
+        
+        if (!page || page < 1) {
+            return;
+        }
+        
+        // Show loading state
+        const originalHtml = button.html();
+        button.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        
+        // Build navigation URL
+        const formData = $('#filter-form').serialize();
+        const url = `{{ route('dashboard') }}?${formData}&view_all_mode=true&per_page=50&page=${page}`;
+        
+        // Use the global loadDataFromUrl function from dashboard
+        if (typeof window.loadDataFromUrl === 'function') {
+            window.loadDataFromUrl(url, function(response) {
+                // Success callback
+                button.html(originalHtml).prop('disabled', false);
+                
+                // Show navigation feedback
+                const actionText = action === 'next' ? 'Halaman Selanjutnya' : 'Halaman Sebelumnya';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: actionText,
+                        text: `Berhasil pindah ke halaman ${page}`,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }
+            }, function(xhr) {
+                // Error callback
+                button.html(originalHtml).prop('disabled', false);
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Navigasi Gagal',
+                        text: 'Gagal memuat halaman. Silakan coba lagi.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        } else {
+            // Fallback if function not available
+            window.location.href = url;
+        }
+    });
 });
 </script>
 
@@ -290,6 +434,196 @@ document.addEventListener('DOMContentLoaded', function() {
 .swal2-photo-modal .swal2-image {
     max-height: 85vh !important;
     border-radius: 0.5rem;
+}
+
+/* View All Mode Navigation Styling */
+.view-all-navigation,
+.view-all-bottom-navigation {
+    background-color: var(--card-header-bg, #f8f9fc);
+    color: var(--bs-body-color, #5a5c69);
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .view-all-navigation,
+[data-bs-theme="dark"] .view-all-bottom-navigation {
+    background-color: var(--card-header-bg, #1a1a1a);
+    color: var(--bs-body-color, #e0e0e0);
+}
+
+.view-all-navigation {
+    border-bottom-color: var(--card-border-color, #e3e6f0);
+}
+
+.view-all-bottom-navigation {
+    border-top-color: var(--card-border-color, #e3e6f0);
+}
+
+[data-bs-theme="dark"] .view-all-navigation {
+    border-bottom-color: var(--card-border-color, #333333);
+}
+
+[data-bs-theme="dark"] .view-all-bottom-navigation {
+    border-top-color: var(--card-border-color, #333333);
+}
+
+.table-nav-btn {
+    transition: all 0.2s ease;
+    min-width: 100px;
+    border-color: var(--input-border, #d1d3e2);
+    color: var(--bs-body-color, #5a5c69);
+    background-color: transparent;
+}
+
+.table-nav-btn:not([disabled]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--table-row-hover-bg, #f2f3f7);
+    border-color: #4e73df;
+    color: #4e73df;
+}
+
+[data-bs-theme="dark"] .table-nav-btn {
+    border-color: var(--input-border, #333333);
+    color: var(--bs-body-color, #e0e0e0);
+    background-color: transparent;
+}
+
+[data-bs-theme="dark"] .table-nav-btn:not([disabled]):hover {
+    background-color: var(--table-row-hover-bg, #1e1e1e);
+    border-color: #1cc88a;
+    color: #1cc88a;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.table-nav-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--input-bg, #ffffff);
+    color: var(--text-muted-custom, #858796);
+}
+
+[data-bs-theme="dark"] .table-nav-btn[disabled] {
+    background-color: var(--input-bg, #1a1a1a);
+    color: var(--text-muted-custom, #b0b0b0);
+}
+
+.table-nav-btn[disabled]:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.view-all-navigation .badge {
+    font-size: 0.75em;
+    padding: 0.5em 0.75em;
+    background-color: #36b9cc !important;
+    border: none;
+}
+
+[data-bs-theme="dark"] .view-all-navigation .badge {
+    background-color: #1cc88a !important;
+}
+
+.view-all-navigation .text-muted,
+.view-all-bottom-navigation .text-muted {
+    color: var(--text-muted-custom, #858796) !important;
+    font-size: 0.85em;
+}
+
+[data-bs-theme="dark"] .view-all-navigation .text-muted,
+[data-bs-theme="dark"] .view-all-bottom-navigation .text-muted {
+    color: var(--text-muted-custom, #b0b0b0) !important;
+}
+
+.view-all-bottom-navigation .text-muted strong {
+    color: var(--bs-body-color, #5a5c69) !important;
+    font-weight: 600;
+}
+
+[data-bs-theme="dark"] .view-all-bottom-navigation .text-muted strong {
+    color: var(--bs-body-color, #e0e0e0) !important;
+}
+
+/* Animation for navigation actions */
+@keyframes tableNavigation {
+    0% { opacity: 0.7; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.table-responsive {
+    animation: tableNavigation 0.3s ease-out;
+}
+
+/* Page counter styling */
+.btn-light.disabled {
+    background-color: var(--input-bg, #ffffff);
+    color: var(--text-muted-custom, #858796);
+    border-color: var(--input-border, #d1d3e2);
+    opacity: 1;
+}
+
+[data-bs-theme="dark"] .btn-light.disabled {
+    background-color: var(--input-bg, #1a1a1a);
+    color: var(--text-muted-custom, #b0b0b0);
+    border-color: var(--input-border, #333333);
+}
+
+/* Icon styling */
+.view-all-navigation i,
+.view-all-bottom-navigation i {
+    color: inherit;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .view-all-navigation .d-flex,
+    .view-all-bottom-navigation .d-flex {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch !important;
+    }
+    
+    .table-nav-btn {
+        min-width: auto;
+        flex: 1;
+    }
+    
+    .view-all-navigation .btn-group,
+    .view-all-bottom-navigation .btn-group {
+        width: 100%;
+        display: flex;
+    }
+    
+    .view-all-navigation .gap-3 {
+        gap: 0.5rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .view-all-navigation,
+    .view-all-bottom-navigation {
+        padding: 0.75rem !important;
+    }
+    
+    .view-all-navigation .badge {
+        font-size: 0.7em;
+        padding: 0.4em 0.6em;
+    }
+    
+    .view-all-navigation .text-muted,
+    .view-all-bottom-navigation .text-muted {
+        font-size: 0.8em;
+    }
+}
+
+/* Loading state for navigation buttons */
+.table-nav-btn .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 </style>
 </script>
