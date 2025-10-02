@@ -11,9 +11,22 @@
 
 @section('content')
 <div class="container-fluid">
+    <!-- Theme Toggle Button -->
     <button id="darkModeToggle" class="btn btn-outline-secondary theme-toggle-button">
         <i class="fas fa-moon"></i>
     </button>
+    
+    <!-- Logout Button -->
+    <div class="logout-button-container">
+        <form method="POST" action="{{ route('logout') }}" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-danger logout-button" title="Keluar">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="logout-text">Keluar</span>
+            </button>
+        </form>
+    </div>
+    
     <div class="form-container">
         <div class="card shadow mb-4">
             <div class="card-header pt-2 pb-1 border-left-primary align-items-center">
@@ -22,6 +35,18 @@
                 <img src="{{ asset('Rumah_Sakit_Indriati.webp') }}" alt="Logo" 
                 class="logo">
                 </div>
+                
+                <!-- User Info Badge -->
+                @auth
+                <div class="user-info-badge">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="user-name">{{ auth()->user()->name }}</span>
+                    @if(auth()->user()->phone_number)
+                    <span class="user-phone">• {{ auth()->user()->phone_number }}</span>
+                    @endif
+                </div>
+                @endauth
+                
                 <h2 class="mx-3 font-weight-bold text-black form-title pt-3">
                     <i class="fas fa-user-plus"></i> Form Data Pengantar Pasien
                 </h2>
@@ -52,62 +77,53 @@
                         </label>
                         <select class="form-select" id="kategori_pengantar" name="kategori_pengantar" required>
                             <option value="">Pilih kategori pengantar...</option>
-                            <option value="Polisi">Polisi</option>
                             <option value="Ambulans">Ambulans</option>
+                            <option value="Karyawan">Karyawan</option>
                             <option value="Perorangan">Perorangan</option>
+                            <option value="Satlantas">Satlantas</option>
                         </select>
                     </div>
 
-                            <div class="form-group">
-                                <label for="nama_pengantar" class="form-label">
-                                    <i class="fas fa-user"></i> Nama Pengantar
-                                </label>
-                                <div class="input-group">
-                                    <div class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <input type="text" class="form-control" id="nama_pengantar" name="nama_pengantar" 
-                                           placeholder="Masukkan nama lengkap" required>
-                                </div>
+                    <div class="form-group" id="nama_pengantar_group">
+                        <label for="nama_pengantar" class="form-label">
+                            <i class="fas fa-user"></i> Nama Pengantar
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-user"></i>
                             </div>
+                            <input type="text" class="form-control" id="nama_pengantar" name="nama_pengantar" 
+                                   placeholder="Masukkan nama lengkap" required>
+                        </div>
+                    </div>
 
-                            <div class="form-group">
-                                <label for="jenis_kelamin" class="form-label">
-                                    <i class="fas fa-venus-mars"></i> Jenis Kelamin
-                                </label>
-                                <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
-                                    <option value="">Pilih jenis kelamin...</option>
-                                    <option value="Laki-laki">Laki-laki</option>
-                                    <option value="Perempuan">Perempuan</option>
-                                </select>
+                    <div class="form-group" id="nomor_hp_group">
+                        <label for="nomor_hp" class="form-label">
+                            <i class="fas fa-phone"></i> Nomor HP
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-phone"></i>
                             </div>
+                            <input type="tel" class="form-control" id="nomor_hp" name="nomor_hp" 
+                                   placeholder="Contoh: 08123456789" required>
+                        </div>
+                    </div>
 
-                            <div class="form-group">
-                                <label for="nomor_hp" class="form-label">
-                                    <i class="fas fa-phone"></i> Nomor HP
-                                </label>
-                                <div class="input-group">
-                                    <div class="input-group-text">
-                                        <i class="fas fa-phone"></i>
-                                    </div>
-                                    <input type="tel" class="form-control" id="nomor_hp" name="nomor_hp" 
-                                           placeholder="Contoh: 08123456789" required>
-                                </div>
+                    <div class="form-group" id="nama_ambulans_group" style="display: none;">
+                        <label for="nama_ambulans" class="form-label">
+                            <i class="fas fa-ambulance"></i> Nama Ambulans
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-ambulance"></i>
                             </div>
+                            <input type="text" class="form-control" id="nama_ambulans" name="nama_ambulans" 
+                                   placeholder="Masukkan nama ambulans">
+                        </div>
+                    </div>
 
-                            <div class="form-group">
-                                <label for="plat_nomor" class="form-label">
-                                    <i class="fas fa-car"></i> Plat Nomor
-                                </label>
-                                <div class="input-group">
-                                    <div class="input-group-text">
-                                        <i class="fas fa-car"></i>
-                                    </div>
-                                    <input type="text" class="form-control" id="plat_nomor" name="plat_nomor" 
-                                           placeholder="Contoh: B 1234 ABC" required>
-                                </div>
-                            </div>
-                    <div class="form-group">
+                    <div class="form-group" id="nama_pasien_group">
                         <label for="nama_pasien" class="form-label">
                             <i class="fas fa-user-injured"></i> Nama Pasien
                         </label>
@@ -118,6 +134,17 @@
                             <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" 
                                    placeholder="Masukkan nama lengkap pasien" required>
                         </div>
+                    </div>
+
+                    <div class="form-group" id="jenis_kelamin_pasien_group">
+                        <label for="jenis_kelamin_pasien" class="form-label">
+                            <i class="fas fa-venus-mars"></i> Jenis Kelamin Pasien
+                        </label>
+                        <select class="form-select" id="jenis_kelamin_pasien" name="jenis_kelamin_pasien" required>
+                            <option value="">Pilih jenis kelamin pasien...</option>
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -201,10 +228,18 @@
             $(this).val(value);
         });
 
-        // Plate number formatting
-        $('#plat_nomor').on('input', function() {
-            let value = $(this).val().toUpperCase();
-            $(this).val(value);
+        // Dynamic fields based on category
+        $('#kategori_pengantar').on('change', function() {
+            const category = $(this).val();
+            if (category === 'Ambulans') {
+                $('#nama_ambulans_group').show();
+                $('#nama_ambulans').prop('required', true);
+            } else {
+                $('#nama_ambulans_group').hide();
+                $('#nama_ambulans').prop('required', false);
+            }
+            // All categories have nama_pengantar, nomor_hp, nama_pasien, jenis_kelamin_pasien, foto
+            // So no need to hide others
         });
 
         // Form submission with enhanced session tracking
@@ -250,10 +285,14 @@
                     // Add all form fields except the file input
                     formData.append('kategori_pengantar', $('#kategori_pengantar').val());
                     formData.append('nama_pengantar', $('#nama_pengantar').val());
-                    formData.append('jenis_kelamin', $('#jenis_kelamin').val());
                     formData.append('nomor_hp', $('#nomor_hp').val());
-                    formData.append('plat_nomor', $('#plat_nomor').val());
                     formData.append('nama_pasien', $('#nama_pasien').val());
+                    formData.append('jenis_kelamin_pasien', $('#jenis_kelamin_pasien').val());
+                    
+                    // Add nama_ambulans if applicable
+                    if ($('#kategori_pengantar').val() === 'Ambulans') {
+                        formData.append('nama_ambulans', $('#nama_ambulans').val());
+                    }
                     
                     // Add base64 image data
                     formData.append('foto_pengantar_base64', e.target.result);
@@ -343,6 +382,9 @@
                         
                         // Clear form validation states
                         $('.form-control, .form-select').removeClass('is-valid is-invalid');
+                        
+                        // Reset dynamic fields
+                        $('#nama_ambulans_group').hide();
                         
                         // Focus first input for next entry
                         $('#kategori_pengantar').focus();

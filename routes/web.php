@@ -15,14 +15,21 @@ use App\Http\Controllers\AuthController;
 |
 */
 
-// Authentication Routes
+// Authentication Routes (Admin/Staff)
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Public Routes (accessible without authentication)
-Route::get('/form', [EscortDataController::class, 'index'])->name('form.index');
-Route::post('/form/submit', [EscortDataController::class, 'store'])->name('form.store');
+// Public User Authentication Routes
+Route::get('/loginuser', [AuthController::class, 'showPublicLoginForm'])->name('loginuser');
+Route::post('/loginuser/login', [AuthController::class, 'publicLogin'])->name('loginuser.login');
+Route::post('/loginuser/register', [AuthController::class, 'publicRegister'])->name('loginuser.register');
+
+// Form Routes (require public user authentication)
+Route::middleware(['auth', 'public.user'])->group(function () {
+    Route::get('/form', [EscortDataController::class, 'index'])->name('form.index');
+    Route::post('/form/submit', [EscortDataController::class, 'store'])->name('form.store');
+});
 
 // QR Code generation route
 Route::get('/qr-code/form', [EscortDataController::class, 'generateFormQrCode'])->name('qr.form');
@@ -43,8 +50,7 @@ Route::get('/excel-test', function () {
 Route::get('/submission/{submissionId}', [EscortDataController::class, 'getSubmissionDetails'])->name('submission.details');
 
 // Protected Routes (require authentication - IGD Staff only)
-Route::middleware('auth')->group(function () {
-    Route::get('/', [EscortDataController::class, 'dashboard'])->name('dashboard');
+Route::middleware(['auth', 'admin.user'])->group(function () {
     Route::get('/dashboard', [EscortDataController::class, 'dashboard'])->name('dashboard');
     
     // Escort status management
@@ -65,10 +71,16 @@ Route::get('/csrf-token', function () {
     ]);
 });
 
-// Redirect root to dashboard if authenticated, otherwise to login
+// Redirect root to dashboard (only for admin/staff, public users should use /form)
 Route::get('/', function () {
     if (auth()->check()) {
+        // Public users accessing root should be redirected to form
+        if (auth()->user()->is_public_user) {
+            return redirect()->route('form.index');
+        }
+        // Admin/staff users go to dashboard
         return redirect()->route('dashboard');
     }
+    // Unauthenticated users go to admin login
     return redirect()->route('login');
 })->name('home');
