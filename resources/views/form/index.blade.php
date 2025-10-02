@@ -69,106 +69,181 @@
                     </div>
                 @endif
 
+                <!-- Stepper Component -->
+                <div class="stepper-wrapper mb-4">
+                    <div class="stepper-item active" data-step="1">
+                        <div class="step-counter">1</div>
+                        <div class="step-name">Kategori</div>
+                    </div>
+                    <div class="stepper-item" data-step="2">
+                        <div class="step-counter">2</div>
+                        <div class="step-name">Pengantar</div>
+                    </div>
+                    <div class="stepper-item" data-step="3">
+                        <div class="step-counter">3</div>
+                        <div class="step-name">Kendaraan</div>
+                    </div>
+                    <div class="stepper-item" data-step="4">
+                        <div class="step-counter">4</div>
+                        <div class="step-name">Pasien</div>
+                    </div>
+                    <div class="stepper-item" data-step="5">
+                        <div class="step-counter">5</div>
+                        <div class="step-name">Foto</div>
+                    </div>
+                </div>
+
                 <form method="POST" id="escortForm" enctype="multipart/form-data">
                     
-                    <div class="form-group">
-                        <label for="kategori_pengantar" class="form-label">
-                            <i class="fas fa-tags"></i> Kategori Pengantar
-                        </label>
-                        <select class="form-select" id="kategori_pengantar" name="kategori_pengantar" required>
-                            <option value="">Pilih kategori pengantar...</option>
-                            <option value="Ambulans">Ambulans</option>
-                            <option value="Karyawan">Karyawan</option>
-                            <option value="Perorangan">Perorangan</option>
-                            <option value="Satlantas">Satlantas</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" id="nama_pengantar_group">
-                        <label for="nama_pengantar" class="form-label">
-                            <i class="fas fa-user"></i> Nama Pengantar
-                        </label>
-                        <div class="input-group">
-                            <div class="input-group-text">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <input type="text" class="form-control" id="nama_pengantar" name="nama_pengantar" 
-                                   placeholder="Masukkan nama lengkap" required>
+                    <!-- Step 1: Kategori -->
+                    <div class="form-step" id="step-1">
+                        <div class="form-group">
+                            <label for="kategori_pengantar" class="form-label">
+                                <i class="fas fa-tags"></i> Kategori Pengantar
+                            </label>
+                            <select class="form-select" id="kategori_pengantar" name="kategori_pengantar" required>
+                                <option value="">Pilih kategori pengantar...</option>
+                                <option value="Ambulans">Ambulans</option>
+                                <option value="Karyawan">Karyawan</option>
+                                <option value="Perorangan">Perorangan</option>
+                                <option value="Satlantas">Satlantas</option>
+                            </select>
+                        </div>
+                        <div class="step-buttons">
+                            <button type="button" class="btn btn-primary next-step w-100" data-next="2">
+                                Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="form-group" id="nomor_hp_group">
-                        <label for="nomor_hp" class="form-label">
-                            <i class="fas fa-phone"></i> Nomor HP
-                        </label>
-                        <div class="input-group">
-                            <div class="input-group-text">
-                                <i class="fas fa-phone"></i>
+                    <!-- Step 2: Data Pengantar -->
+                    <div class="form-step d-none" id="step-2">
+                        <div class="form-group">
+                            <label for="nama_pengantar" class="form-label">
+                                <i class="fas fa-user"></i> Nama Pengantar
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <input type="text" class="form-control" id="nama_pengantar" name="nama_pengantar" 
+                                       placeholder="Masukkan nama lengkap" required>
                             </div>
-                            <input type="tel" class="form-control" id="nomor_hp" name="nomor_hp" 
-                                   placeholder="Contoh: 08123456789" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nomor_hp" class="form-label">
+                                <i class="fas fa-phone"></i> Nomor HP
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <input type="tel" class="form-control" id="nomor_hp" name="nomor_hp" 
+                                       placeholder="Contoh: 08123456789" required>
+                            </div>
+                        </div>
+                        <div class="step-buttons d-flex gap-2">
+                            <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="1">
+                                <i class="fas fa-arrow-left me-2"></i> Kembali
+                            </button>
+                            <button type="button" class="btn btn-primary next-step flex-grow-1" data-next="3">
+                                Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="form-group" id="nama_ambulans_group" style="display: none;">
-                        <label for="nama_ambulans" class="form-label">
-                            <i class="fas fa-ambulance"></i> Nama Ambulans
-                        </label>
-                        <div class="input-group">
-                            <div class="input-group-text">
-                                <i class="fas fa-ambulance"></i>
+                    <!-- Step 3: Kendaraan (Dynamic label) -->
+                    <div class="form-step d-none" id="step-3">
+                        <div class="form-group">
+                            <label for="nama_ambulans" class="form-label" id="kendaraan_label">
+                                <i class="fas fa-ambulance" id="kendaraan_icon"></i> <span id="kendaraan_label_text">Nama Ambulans</span>
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-text" id="kendaraan_input_icon">
+                                    <i class="fas fa-ambulance"></i>
+                                </div>
+                                <input type="text" class="form-control" id="nama_ambulans" name="nama_ambulans" 
+                                       placeholder="Masukkan nama ambulans">
                             </div>
-                            <input type="text" class="form-control" id="nama_ambulans" name="nama_ambulans" 
-                                   placeholder="Masukkan nama ambulans">
+                            <small class="text-muted mt-1 d-block" id="kendaraan_help_text">
+                                Contoh: Ambulans Gawat Darurat 1
+                            </small>
+                        </div>
+                        <div class="step-buttons d-flex gap-2">
+                            <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="2">
+                                <i class="fas fa-arrow-left me-2"></i> Kembali
+                            </button>
+                            <button type="button" class="btn btn-primary next-step flex-grow-1" data-next="4">
+                                Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="form-group" id="nama_pasien_group">
-                        <label for="nama_pasien" class="form-label">
-                            <i class="fas fa-user-injured"></i> Nama Pasien
-                        </label>
-                        <div class="input-group">
-                            <div class="input-group-text">
-                                <i class="fas fa-user-injured"></i>
+                    <!-- Step 4: Data Pasien -->
+                    <div class="form-step d-none" id="step-4">
+                        <div class="form-group">
+                            <label for="nama_pasien" class="form-label">
+                                <i class="fas fa-user-injured"></i> Nama Pasien
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <i class="fas fa-user-injured"></i>
+                                </div>
+                                <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" 
+                                       placeholder="Masukkan nama lengkap pasien" required>
                             </div>
-                            <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" 
-                                   placeholder="Masukkan nama lengkap pasien" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jenis_kelamin_pasien" class="form-label">
+                                <i class="fas fa-venus-mars"></i> Jenis Kelamin Pasien
+                            </label>
+                            <select class="form-select" id="jenis_kelamin_pasien" name="jenis_kelamin_pasien" required>
+                                <option value="">Pilih jenis kelamin pasien...</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="step-buttons d-flex gap-2">
+                            <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="3">
+                                <i class="fas fa-arrow-left me-2"></i> Kembali
+                            </button>
+                            <button type="button" class="btn btn-primary next-step flex-grow-1" data-next="5">
+                                Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="form-group" id="jenis_kelamin_pasien_group">
-                        <label for="jenis_kelamin_pasien" class="form-label">
-                            <i class="fas fa-venus-mars"></i> Jenis Kelamin Pasien
-                        </label>
-                        <select class="form-select" id="jenis_kelamin_pasien" name="jenis_kelamin_pasien" required>
-                            <option value="">Pilih jenis kelamin pasien...</option>
-                            <option value="Laki-laki">Laki-laki</option>
-                            <option value="Perempuan">Perempuan</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="foto_pengantar" class="form-label">
-                            <i class="fas fa-camera"></i> Foto Pengantar
-                        </label>
-                        <div class="file-input-wrapper">
-                            <input type="file" class="file-input" id="foto_pengantar" name="foto_pengantar" 
-                                   accept="image/*" required>
-                            <div class="file-input-display">
-                                <i class="fas fa-cloud-upload-alt file-icon"></i>
-                                <span class="file-text">Klik untuk memilih foto atau drag & drop</span>
+                    <!-- Step 5: Foto -->
+                    <div class="form-step d-none" id="step-5">
+                        <div class="form-group">
+                            <label for="foto_pengantar" class="form-label">
+                                <i class="fas fa-camera"></i> Foto Pengantar
+                            </label>
+                            <div class="file-input-wrapper">
+                                <input type="file" class="file-input" id="foto_pengantar" name="foto_pengantar" 
+                                       accept="image/*" required>
+                                <div class="file-input-display">
+                                    <i class="fas fa-cloud-upload-alt file-icon"></i>
+                                    <span class="file-text">Klik untuk memilih foto atau drag & drop</span>
+                                </div>
                             </div>
                         </div>
+                        <div class="step-buttons d-flex gap-2">
+                            <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="4">
+                                <i class="fas fa-arrow-left me-2"></i> Kembali
+                            </button>
+                            <button type="submit" class="btn btn-success flex-grow-1" id="submitBtn">
+                                <span class="btn-text">
+                                    <i class="fas fa-paper-plane"></i> Kirim Data
+                                </span>
+                                <span class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i> Memproses...
+                                </span>
+                            </button>
+                        </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        <span class="btn-text">
-                            <i class="fas fa-paper-plane"></i> Kirim Data
-                        </span>
-                        <span class="loading-spinner">
-                            <i class="fas fa-spinner fa-spin"></i> Memproses...
-                        </span>
-                    </button>
                 </form>
             </div>
         </div>
@@ -180,6 +255,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Initialize vehicle field as hidden
+        $('#nama_ambulans').closest('.form-group').hide();
+        $('#nama_ambulans').prop('required', false);
+        
         // File input handling
         $('#foto_pengantar').on('change', function() {
             const file = this.files[0];
@@ -228,18 +307,123 @@
             $(this).val(value);
         });
 
+        // Stepper navigation
+        let currentStep = 1;
+        
+        $('.next-step').on('click', function() {
+            const nextStep = parseInt($(this).data('next'));
+            const currentStepElement = $(`#step-${currentStep}`);
+            
+            // Validate current step before moving forward
+            let isValid = true;
+            let emptyFields = [];
+            
+            currentStepElement.find('input[required], select[required]').each(function() {
+                const field = $(this);
+                const fieldName = field.attr('name') || field.attr('id');
+                const fieldLabel = field.closest('.form-group').find('label').text().trim();
+                
+                // Remove validation classes first
+                field.removeClass('is-invalid is-valid');
+                
+                if (!field.val() || field.val().trim() === '') {
+                    isValid = false;
+                    field.addClass('is-invalid');
+                    emptyFields.push(fieldLabel);
+                } else {
+                    field.addClass('is-valid');
+                }
+            });
+            
+            if (isValid) {
+                // Clear all validation classes before moving
+                currentStepElement.find('.form-control, .form-select').removeClass('is-invalid is-valid');
+                
+                // Hide current step
+                currentStepElement.addClass('d-none');
+                // Show next step
+                $(`#step-${nextStep}`).removeClass('d-none');
+                // Update stepper
+                updateStepper(nextStep);
+                currentStep = nextStep;
+                
+                // Scroll to top
+                $('.card-body').animate({ scrollTop: 0 }, 300);
+            } else {
+                // Show specific fields that need to be filled
+                const fieldList = emptyFields.map(field => `• ${field}`).join('<br>');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Perhatian!',
+                    html: `<div class="text-start"><p class="mb-2">Mohon lengkapi field berikut:</p>${fieldList}</div>`,
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonText: 'Mengerti'
+                });
+            }
+        });
+        
+        $('.prev-step').on('click', function() {
+            const prevStep = parseInt($(this).data('prev'));
+            // Hide current step
+            $(`#step-${currentStep}`).addClass('d-none');
+            // Show previous step
+            $(`#step-${prevStep}`).removeClass('d-none');
+            // Update stepper
+            updateStepper(prevStep);
+            currentStep = prevStep;
+            
+            // Scroll to top
+            $('.card-body').animate({ scrollTop: 0 }, 300);
+        });
+        
+        function updateStepper(step) {
+            $('.stepper-item').each(function() {
+                const itemStep = parseInt($(this).data('step'));
+                if (itemStep < step) {
+                    $(this).addClass('completed').removeClass('active');
+                } else if (itemStep === step) {
+                    $(this).addClass('active').removeClass('completed');
+                } else {
+                    $(this).removeClass('active completed');
+                }
+            });
+        }
+        
         // Dynamic fields based on category
         $('#kategori_pengantar').on('change', function() {
             const category = $(this).val();
+            const labelText = $('#kendaraan_label_text');
+            const icon = $('#kendaraan_icon');
+            const inputIcon = $('#kendaraan_input_icon i');
+            const input = $('#nama_ambulans');
+            const helpText = $('#kendaraan_help_text');
+            const formGroup = input.closest('.form-group');
+            
             if (category === 'Ambulans') {
-                $('#nama_ambulans_group').show();
-                $('#nama_ambulans').prop('required', true);
+                labelText.html('<i class="fas fa-ambulance me-1"></i>Nama Ambulans');
+                icon.removeClass('fa-id-card').addClass('fa-ambulance');
+                inputIcon.removeClass('fa-id-card').addClass('fa-ambulance');
+                input.attr('placeholder', 'Masukkan nama ambulans');
+                input.attr('name', 'nama_ambulans');
+                helpText.text('Contoh: Ambulans Gawat Darurat 1');
+                input.prop('required', true);
+                formGroup.show();
+            } else if (category) {
+                labelText.html('<i class="fas fa-id-card me-1"></i>Plat Nomor Kendaraan');
+                icon.removeClass('fa-ambulance').addClass('fa-id-card');
+                inputIcon.removeClass('fa-ambulance').addClass('fa-id-card');
+                input.attr('placeholder', 'Masukkan plat nomor kendaraan');
+                input.attr('name', 'plat_nomor');
+                helpText.text('Contoh: B 1234 XYZ');
+                input.prop('required', true);
+                formGroup.show();
             } else {
-                $('#nama_ambulans_group').hide();
-                $('#nama_ambulans').prop('required', false);
+                input.prop('required', false);
+                formGroup.hide();
             }
-            // All categories have nama_pengantar, nomor_hp, nama_pasien, jenis_kelamin_pasien, foto
-            // So no need to hide others
+            
+            // Clear any validation state when category changes
+            input.removeClass('is-invalid is-valid').val('');
         });
 
         // Form submission with enhanced session tracking
@@ -281,17 +465,24 @@
                 reader.onload = function(e) {
                     // Create FormData with base64 image
                     const formData = new FormData();
+                    const category = $('#kategori_pengantar').val();
                     
                     // Add all form fields except the file input
-                    formData.append('kategori_pengantar', $('#kategori_pengantar').val());
+                    formData.append('kategori_pengantar', category);
                     formData.append('nama_pengantar', $('#nama_pengantar').val());
                     formData.append('nomor_hp', $('#nomor_hp').val());
                     formData.append('nama_pasien', $('#nama_pasien').val());
                     formData.append('jenis_kelamin_pasien', $('#jenis_kelamin_pasien').val());
                     
-                    // Add nama_ambulans if applicable
-                    if ($('#kategori_pengantar').val() === 'Ambulans') {
-                        formData.append('nama_ambulans', $('#nama_ambulans').val());
+                    // Add vehicle info based on category
+                    const vehicleInput = $('#nama_ambulans');
+                    const vehicleValue = vehicleInput.val();
+                    
+                    if (category === 'Ambulans' && vehicleValue) {
+                        formData.append('nama_ambulans', vehicleValue);
+                    } else if (category && vehicleValue) {
+                        // For other categories, send as plat_nomor but backend expects nama_ambulans
+                        formData.append('nama_ambulans', vehicleValue);
                     }
                     
                     // Add base64 image data
@@ -383,8 +574,11 @@
                         // Clear form validation states
                         $('.form-control, .form-select').removeClass('is-valid is-invalid');
                         
-                        // Reset dynamic fields
-                        $('#nama_ambulans_group').hide();
+                        // Reset stepper to step 1
+                        $('.form-step').addClass('d-none');
+                        $('#step-1').removeClass('d-none');
+                        currentStep = 1;
+                        updateStepper(1);
                         
                         // Focus first input for next entry
                         $('#kategori_pengantar').focus();
@@ -469,20 +663,37 @@
             setInterval(showSessionStats, 30000);
         }
 
-        // Real-time validation feedback
-        $('input[required], select[required]').on('blur', function() {
+        // Real-time validation feedback - only for current step
+        $(document).on('input change', 'input[required], select[required]', function() {
             const field = $(this);
-            if (!field.val()) {
-                field.css('border-color', '#dc3545');
-            } else {
-                field.css('border-color', '#28a745');
+            const currentStepElement = $(`#step-${currentStep}`);
+            
+            // Only validate fields in the current visible step
+            if (currentStepElement.find(field).length > 0) {
+                field.removeClass('is-invalid is-valid');
+                
+                if (field.val() && field.val().trim() !== '') {
+                    field.addClass('is-valid');
+                } else if (field.closest('.form-group').hasClass('was-validated')) {
+                    field.addClass('is-invalid');
+                }
             }
         });
-
-        $('input[required], select[required]').on('input change', function() {
+        
+        // Add visual feedback on blur for better UX
+        $(document).on('blur', 'input[required], select[required]', function() {
             const field = $(this);
-            if (field.val()) {
-                field.css('border-color', '#28a745');
+            const currentStepElement = $(`#step-${currentStep}`);
+            
+            // Only validate fields in the current visible step
+            if (currentStepElement.find(field).length > 0) {
+                field.closest('.form-group').addClass('was-validated');
+                
+                if (!field.val() || field.val().trim() === '') {
+                    field.addClass('is-invalid');
+                } else {
+                    field.removeClass('is-invalid').addClass('is-valid');
+                }
             }
         });
     });
