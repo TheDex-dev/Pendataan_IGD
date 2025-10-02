@@ -15,12 +15,12 @@ class CreateEscortsTable extends Migration
     {
         Schema::create('escorts', function (Blueprint $table) {
             $table->id();
-            $table->enum('kategori_pengantar', ['Polisi', 'Ambulans', 'Perorangan']);
+            $table->enum('kategori_pengantar', ['Ambulans', 'Karyawan', 'Perorangan', 'Satlantas']);
             $table->string('nama_pengantar');
-            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan']);
             $table->string('nomor_hp', 20);
-            $table->string('plat_nomor', 20);
+            $table->string('nama_ambulan', 20);
             $table->string('nama_pasien');
+            $table->enum('jenis_kelamin_pasien', ['Laki-laki', 'Perempuan']);
             $table->string('foto_pengantar')->nullable();
             // Optional tracking fields for session integration
             $table->string('submission_id')->nullable();
