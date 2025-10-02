@@ -104,8 +104,9 @@
                             <select class="form-select" id="kategori_pengantar" name="kategori_pengantar" required>
                                 <option value="">Pilih kategori pengantar...</option>
                                 <option value="Ambulans">Ambulans</option>
-                                <option value="Polisi">Polisi</option>
+                                <option value="Karyawan">Karyawan</option>
                                 <option value="Perorangan">Perorangan</option>
+                                <option value="Satlantas">Satlantas</option>
                             </select>
                         </div>
                         <div class="step-buttons">
@@ -115,42 +116,45 @@
                         </div>
                     </div>
 
+                   
                     <!-- Step 2: Data Pengantar -->
-                    <div class="form-step d-none" id="step-2">
-                        <div class="form-group">
-                            <label for="nama_pengantar" class="form-label">
-                                <i class="fas fa-user"></i> Nama Pengantar
-                            </label>
-                            <div class="input-group">
-                                <div class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <input type="text" class="form-control" id="nama_pengantar" name="nama_pengantar" 
-                                       placeholder="Masukkan nama lengkap" required>
-                            </div>
-                        </div>
+<div class="form-step d-none" id="step-2">
+    <div class="form-group">
+        <label for="nama_pengantar" class="form-label">
+            <i class="fas fa-user"></i> Nama Pengantar
+        </label>
+        <div class="input-group">
+            <div class="input-group-text">
+                <i class="fas fa-user"></i>
+            </div>
+            <input type="text" class="form-control" id="nama_pengantar" name="nama_pengantar" 
+                   placeholder="Masukkan nama lengkap" 
+                   value="{{ auth()->user()->name ?? '' }}" required>
+        </div>
+    </div>
 
-                        <div class="form-group">
-                            <label for="nomor_hp" class="form-label">
-                                <i class="fas fa-phone"></i> Nomor HP
-                            </label>
-                            <div class="input-group">
-                                <div class="input-group-text">
-                                    <i class="fas fa-phone"></i>
-                                </div>
-                                <input type="tel" class="form-control" id="nomor_hp" name="nomor_hp" 
-                                       placeholder="Contoh: 08123456789" required>
-                            </div>
-                        </div>
-                        <div class="step-buttons d-flex gap-2">
-                            <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="1">
-                                <i class="fas fa-arrow-left me-2"></i> Kembali
-                            </button>
-                            <button type="button" class="btn btn-primary next-step flex-grow-1" data-next="3">
-                                Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-                    </div>
+    <div class="form-group">
+        <label for="nomor_hp" class="form-label">
+            <i class="fas fa-phone"></i> Nomor HP
+        </label>
+        <div class="input-group">
+            <div class="input-group-text">
+                <i class="fas fa-phone"></i>
+            </div>
+            <input type="tel" class="form-control" id="nomor_hp" name="nomor_hp" 
+                   placeholder="Contoh: 08123456789" 
+                   value="{{ auth()->user()->phone_number ?? '' }}" required>
+        </div>
+    </div>
+    <div class="step-buttons d-flex gap-2">
+        <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="1">
+            <i class="fas fa-arrow-left me-2"></i> Kembali
+        </button>
+        <button type="button" class="btn btn-primary next-step flex-grow-1" data-next="3">
+            Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
+        </button>
+    </div>
+</div>
 
                     <!-- Step 3: Kendaraan (Dynamic label, static field name) -->
                     <div class="form-step d-none" id="step-3">
@@ -182,17 +186,6 @@
                     <!-- Step 4: Data Pengantar & Pasien -->
                     <div class="form-step d-none" id="step-4">
                         <div class="form-group">
-                            <label for="jenis_kelamin" class="form-label">
-                                <i class="fas fa-venus-mars"></i> Jenis Kelamin Pengantar
-                            </label>
-                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
-                                <option value="">Pilih jenis kelamin...</option>
-                                <option value="Laki-laki">Laki-laki</option>
-                                <option value="Perempuan">Perempuan</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
                             <label for="nama_pasien" class="form-label">
                                 <i class="fas fa-user-injured"></i> Nama Pasien
                             </label>
@@ -203,6 +196,16 @@
                                 <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" 
                                        placeholder="Masukkan nama lengkap pasien" required>
                             </div>
+                            <div class="form-group">
+                            <label for="jenis_kelamin" class="form-label">
+                                <i class="fas fa-venus-mars"></i> Jenis Kelamin Pasien
+                            </label>
+                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                                <option value="">Pilih jenis kelamin...</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
                         </div>
                         <div class="step-buttons d-flex gap-2">
                             <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="3">
