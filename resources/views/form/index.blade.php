@@ -85,7 +85,7 @@
                     </div>
                     <div class="stepper-item" data-step="4">
                         <div class="step-counter">4</div>
-                        <div class="step-name">Pasien</div>
+                        <div class="step-name">Data</div>
                     </div>
                     <div class="stepper-item" data-step="5">
                         <div class="step-counter">5</div>
@@ -104,9 +104,8 @@
                             <select class="form-select" id="kategori_pengantar" name="kategori_pengantar" required>
                                 <option value="">Pilih kategori pengantar...</option>
                                 <option value="Ambulans">Ambulans</option>
-                                <option value="Karyawan">Karyawan</option>
+                                <option value="Polisi">Polisi</option>
                                 <option value="Perorangan">Perorangan</option>
-                                <option value="Satlantas">Satlantas</option>
                             </select>
                         </div>
                         <div class="step-buttons">
@@ -153,21 +152,21 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Kendaraan (Dynamic label) -->
+                    <!-- Step 3: Kendaraan (Dynamic label, static field name) -->
                     <div class="form-step d-none" id="step-3">
                         <div class="form-group">
-                            <label for="nama_ambulans" class="form-label" id="kendaraan_label">
-                                <i class="fas fa-ambulance" id="kendaraan_icon"></i> <span id="kendaraan_label_text">Nama Ambulans</span>
+                            <label for="plat_nomor" class="form-label" id="kendaraan_label">
+                                <i class="fas fa-car" id="kendaraan_icon"></i> <span id="kendaraan_label_text">Plat Nomor Kendaraan</span>
                             </label>
                             <div class="input-group">
                                 <div class="input-group-text" id="kendaraan_input_icon">
-                                    <i class="fas fa-ambulance"></i>
+                                    <i class="fas fa-car"></i>
                                 </div>
-                                <input type="text" class="form-control" id="nama_ambulans" name="nama_ambulans" 
-                                       placeholder="Masukkan nama ambulans">
+                                <input type="text" class="form-control" id="plat_nomor" name="plat_nomor" 
+                                       placeholder="Contoh: B 1234 ABC" required>
                             </div>
                             <small class="text-muted mt-1 d-block" id="kendaraan_help_text">
-                                Contoh: Ambulans Gawat Darurat 1
+                                Masukkan plat nomor kendaraan yang digunakan
                             </small>
                         </div>
                         <div class="step-buttons d-flex gap-2">
@@ -180,8 +179,19 @@
                         </div>
                     </div>
 
-                    <!-- Step 4: Data Pasien -->
+                    <!-- Step 4: Data Pengantar & Pasien -->
                     <div class="form-step d-none" id="step-4">
+                        <div class="form-group">
+                            <label for="jenis_kelamin" class="form-label">
+                                <i class="fas fa-venus-mars"></i> Jenis Kelamin Pengantar
+                            </label>
+                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                                <option value="">Pilih jenis kelamin...</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+
                         <div class="form-group">
                             <label for="nama_pasien" class="form-label">
                                 <i class="fas fa-user-injured"></i> Nama Pasien
@@ -193,17 +203,6 @@
                                 <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" 
                                        placeholder="Masukkan nama lengkap pasien" required>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="jenis_kelamin_pasien" class="form-label">
-                                <i class="fas fa-venus-mars"></i> Jenis Kelamin Pasien
-                            </label>
-                            <select class="form-select" id="jenis_kelamin_pasien" name="jenis_kelamin_pasien" required>
-                                <option value="">Pilih jenis kelamin pasien...</option>
-                                <option value="Laki-laki">Laki-laki</option>
-                                <option value="Perempuan">Perempuan</option>
-                            </select>
                         </div>
                         <div class="step-buttons d-flex gap-2">
                             <button type="button" class="btn btn-secondary prev-step flex-grow-1" data-prev="3">
@@ -255,9 +254,11 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Initialize vehicle field as hidden
-        $('#nama_ambulans').closest('.form-group').hide();
-        $('#nama_ambulans').prop('required', false);
+        // Note: CSRF token not needed - /api/escort is excluded from CSRF verification
+        
+        // Initialize vehicle field as hidden until category is selected
+        $('#plat_nomor').closest('.form-group').hide();
+        $('#plat_nomor').prop('required', false);
         
         // File input handling
         $('#foto_pengantar').on('change', function() {
@@ -389,40 +390,51 @@
             });
         }
         
-        // Dynamic fields based on category
+        // Dynamic field switching for better UX (changes label/icon/placeholder based on category)
+        // Note: Always sends 'plat_nomor' to API regardless of category
         $('#kategori_pengantar').on('change', function() {
             const category = $(this).val();
             const labelText = $('#kendaraan_label_text');
             const icon = $('#kendaraan_icon');
             const inputIcon = $('#kendaraan_input_icon i');
-            const input = $('#nama_ambulans');
+            const input = $('#plat_nomor');
             const helpText = $('#kendaraan_help_text');
             const formGroup = input.closest('.form-group');
             
             if (category === 'Ambulans') {
+                // Change UI to show "Nama Ambulans" for better UX
                 labelText.html('<i class="fas fa-ambulance me-1"></i>Nama Ambulans');
-                icon.removeClass('fa-id-card').addClass('fa-ambulance');
-                inputIcon.removeClass('fa-id-card').addClass('fa-ambulance');
+                icon.removeClass('fa-car').addClass('fa-ambulance');
+                inputIcon.removeClass('fa-car').addClass('fa-ambulance');
                 input.attr('placeholder', 'Masukkan nama ambulans');
-                input.attr('name', 'nama_ambulans');
                 helpText.text('Contoh: Ambulans Gawat Darurat 1');
                 input.prop('required', true);
                 formGroup.show();
-            } else if (category) {
-                labelText.html('<i class="fas fa-id-card me-1"></i>Plat Nomor Kendaraan');
-                icon.removeClass('fa-ambulance').addClass('fa-id-card');
-                inputIcon.removeClass('fa-ambulance').addClass('fa-id-card');
-                input.attr('placeholder', 'Masukkan plat nomor kendaraan');
-                input.attr('name', 'plat_nomor');
-                helpText.text('Contoh: B 1234 XYZ');
+            } else if (category === 'Polisi') {
+                // Change UI to show "Nomor Kendaraan Polisi"
+                labelText.html('<i class="fas fa-shield-alt me-1"></i>Nomor Kendaraan Polisi');
+                icon.removeClass('fa-car fa-ambulance').addClass('fa-shield-alt');
+                inputIcon.removeClass('fa-car fa-ambulance').addClass('fa-shield-alt');
+                input.attr('placeholder', 'Contoh: Polda Metro 123');
+                helpText.text('Masukkan nomor kendaraan dinas polisi');
+                input.prop('required', true);
+                formGroup.show();
+            } else if (category === 'Perorangan') {
+                // Change UI to show "Plat Nomor Kendaraan"
+                labelText.html('<i class="fas fa-car me-1"></i>Plat Nomor Kendaraan');
+                icon.removeClass('fa-ambulance fa-shield-alt').addClass('fa-car');
+                inputIcon.removeClass('fa-ambulance fa-shield-alt').addClass('fa-car');
+                input.attr('placeholder', 'Contoh: B 1234 ABC');
+                helpText.text('Masukkan plat nomor kendaraan pribadi');
                 input.prop('required', true);
                 formGroup.show();
             } else {
+                // Hide field if no category selected
                 input.prop('required', false);
                 formGroup.hide();
             }
             
-            // Clear any validation state when category changes
+            // Clear validation state when category changes
             input.removeClass('is-invalid is-valid').val('');
         });
 
@@ -463,27 +475,16 @@
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    // Create FormData with base64 image
+                    // Create FormData matching API structure
                     const formData = new FormData();
-                    const category = $('#kategori_pengantar').val();
                     
-                    // Add all form fields except the file input
-                    formData.append('kategori_pengantar', category);
+                    // Add all form fields matching database schema
+                    formData.append('kategori_pengantar', $('#kategori_pengantar').val());
                     formData.append('nama_pengantar', $('#nama_pengantar').val());
+                    formData.append('jenis_kelamin', $('#jenis_kelamin').val());  // Escort gender, not patient!
                     formData.append('nomor_hp', $('#nomor_hp').val());
+                    formData.append('plat_nomor', $('#plat_nomor').val());  // Always plat_nomor
                     formData.append('nama_pasien', $('#nama_pasien').val());
-                    formData.append('jenis_kelamin_pasien', $('#jenis_kelamin_pasien').val());
-                    
-                    // Add vehicle info based on category
-                    const vehicleInput = $('#nama_ambulans');
-                    const vehicleValue = vehicleInput.val();
-                    
-                    if (category === 'Ambulans' && vehicleValue) {
-                        formData.append('nama_ambulans', vehicleValue);
-                    } else if (category && vehicleValue) {
-                        // For other categories, send as plat_nomor but backend expects nama_ambulans
-                        formData.append('nama_ambulans', vehicleValue);
-                    }
                     
                     // Add base64 image data
                     formData.append('foto_pengantar_base64', e.target.result);
@@ -663,25 +664,33 @@
             setInterval(showSessionStats, 30000);
         }
 
-        // Real-time validation feedback - only for current step
-        $(document).on('input change', 'input[required], select[required]', function() {
+        // Real-time validation - validate automatically as user types
+        $(document).on('input change', 'input[required], select[required], textarea[required]', function() {
             const field = $(this);
             const currentStepElement = $(`#step-${currentStep}`);
             
             // Only validate fields in the current visible step
             if (currentStepElement.find(field).length > 0) {
+                // Mark form group as validated once user starts typing
+                field.closest('.form-group').addClass('was-validated');
+                
+                // Remove previous validation states
                 field.removeClass('is-invalid is-valid');
                 
-                if (field.val() && field.val().trim() !== '') {
-                    field.addClass('is-valid');
-                } else if (field.closest('.form-group').hasClass('was-validated')) {
+                // Validate immediately
+                const value = field.val();
+                const isEmpty = !value || value.trim() === '';
+                
+                if (isEmpty) {
                     field.addClass('is-invalid');
+                } else {
+                    field.addClass('is-valid');
                 }
             }
         });
         
-        // Add visual feedback on blur for better UX
-        $(document).on('blur', 'input[required], select[required]', function() {
+        // Enhanced validation on blur (when user leaves field)
+        $(document).on('blur', 'input[required], select[required], textarea[required]', function() {
             const field = $(this);
             const currentStepElement = $(`#step-${currentStep}`);
             
@@ -689,11 +698,26 @@
             if (currentStepElement.find(field).length > 0) {
                 field.closest('.form-group').addClass('was-validated');
                 
-                if (!field.val() || field.val().trim() === '') {
+                const value = field.val();
+                const isEmpty = !value || value.trim() === '';
+                
+                // Clear previous states
+                field.removeClass('is-invalid is-valid');
+                
+                if (isEmpty) {
                     field.addClass('is-invalid');
                 } else {
-                    field.removeClass('is-invalid').addClass('is-valid');
+                    field.addClass('is-valid');
                 }
+            }
+        });
+        
+        // Clear validation when user focuses on field
+        $(document).on('focus', 'input, select, textarea', function() {
+            const field = $(this);
+            // Only remove invalid class on focus, keep valid class
+            if (field.hasClass('is-invalid')) {
+                field.removeClass('is-invalid');
             }
         });
     });
