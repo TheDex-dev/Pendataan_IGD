@@ -199,15 +199,6 @@
         border-color: #e74a3b !important;
         color: #e74a3b !important;
     }
-    /* Buttons in SweetAlert2 */
-    .swal2-actions .swal2-confirm {
-        background-color: #28a745 !important;
-        color: white !important;
-    }
-    .swal2-actions .swal2-cancel {
-        background-color: #6c757d !important;
-        color: white !important;
-    }
 
     .swal2-popup .table {
         margin-bottom: 0;

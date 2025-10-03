@@ -78,10 +78,10 @@
                         <th class="fw-bold px-4">No</th>
                         <th class="fw-bold">Kategori</th>
                         <th class="fw-bold">Nama Pengantar</th>
-                        <th class="fw-bold">Jenis Kelamin</th>
                         <th class="fw-bold">No. HP</th>
-                        <th class="fw-bold">Plat Nomor</th>
-                <th scope="col">Nama Pasien</th>
+                        <th class="fw-bold">Nama Ambulan</th>
+                        <th class="fw-bold">Nama Pasien</th>
+                        <th class="fw-bold">Jenis Kelamin Pasien</th>
                 <th scope="col">Status</th>
                 <th scope="col">Tanggal Dibuat</th>
                 <th scope="col">Aksi</th>
@@ -107,16 +107,16 @@
                         </span>
                     </td>
                     <td>{{ $escort->nama_pengantar }}</td>
-                    <td>{{ $escort->jenis_kelamin }}</td>
                     <td>
                         <a href="tel:{{ $escort->nomor_hp }}" class="text-decoration-none">
                             {{ $escort->nomor_hp }}
                         </a>
                     </td>
                     <td>
-                        <code>{{ $escort->plat_nomor }}</code>
+                        <code>{{ $escort->nama_ambulan }}</code>
                     </td>
                     <td>{{ $escort->nama_pasien }}</td>
+                    <td>{{ $escort->jenis_kelamin_pasien }}</td>
                     <td>
                         <span class="badge status-badge-{{ $escort->id }} {{ $escort->getStatusBadgeClass() }}">
                             {{ $escort->getStatusDisplayName() }}
@@ -137,10 +137,10 @@
                                         'id' => $escort->id,
                                         'nama_pengantar' => $escort->nama_pengantar,
                                         'kategori_pengantar' => $escort->kategori_pengantar,
-                                        'jenis_kelamin' => $escort->jenis_kelamin,
                                         'nomor_hp' => $escort->nomor_hp,
-                                        'plat_nomor' => $escort->plat_nomor,
+                                        'nama_ambulan' => $escort->nama_ambulan,
                                         'nama_pasien' => $escort->nama_pasien,
+                                        'jenis_kelamin_pasien' => $escort->jenis_kelamin_pasien,
                                         'status' => $escort->getStatusDisplayName(),
                                         'status_badge_class' => $escort->getStatusBadgeClass(),
                                         'created_at' => $escort->created_at->format('d/m/Y H:i'),
@@ -276,20 +276,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             <td>: ${escort.kategori_pengantar}</td>
                         </tr>
                         <tr>
-                            <td><strong>Jenis Kelamin</strong></td>
-                            <td>: ${escort.jenis_kelamin}</td>
-                        </tr>
-                        <tr>
                             <td><strong>No. HP</strong></td>
                             <td>: <a href="tel:${escort.nomor_hp}">${escort.nomor_hp}</a></td>
                         </tr>
                         <tr>
-                            <td><strong>Plat Nomor</strong></td>
-                            <td>: <code>${escort.plat_nomor}</code></td>
+                            <td><strong>Nama Ambulanr</strong></td>
+                            <td>: <code>${escort.nama_ambulan}</code></td>
                         </tr>
                         <tr>
                             <td><strong>Nama Pasien</strong></td>
                             <td>: ${escort.nama_pasien}</td>
+                        </tr>
+                         <tr>
+                            <td><strong>Jenis Kelamin Pasien</strong></td>
+                            <td>: ${escort.jenis_kelamin_pasien}</td>
                         </tr>
                         <tr>
                             <td><strong>Status</strong></td>

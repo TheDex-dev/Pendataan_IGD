@@ -96,7 +96,7 @@
                     <div class="col-lg-8">
                         <label for="search" class="form-label">Pencarian Cepat</label>
                         <input type="text" class="form-control" id="search" name="search"
-                               placeholder="Cari nama pengantar, nama pasien, nomor HP, atau plat nomor..."
+                               placeholder="Cari nama pengantar, nama pasien, nomor HP, atau nama ambulan..."
                                value="{{ request('search') }}">
                     </div>
                     <div class="col-lg-4 d-flex align-items-end">
@@ -118,9 +118,10 @@
                             <label for="kategori" class="form-label">Kategori Pengantar</label>
                             <select class="form-select" id="kategori" name="kategori">
                                 <option value="">Semua Kategori</option>
-                                <option value="Polisi" {{ request('kategori') == 'Polisi' ? 'selected' : '' }}>Polisi</option>
+                                <option value="Satlantas" {{ request('kategori') == 'Satlantas' ? 'selected' : '' }}>Satlantas</option>
                                 <option value="Ambulans" {{ request('kategori') == 'Ambulans' ? 'selected' : '' }}>Ambulans</option>
                                 <option value="Perorangan" {{ request('kategori') == 'Perorangan' ? 'selected' : '' }}>Perorangan</option>
+                                <option value="Karyawan" {{ request('kategori') == 'Karyawan' ? 'selected' : '' }}>Karyawan</option>
                             </select>
                         </div>
                         <div class="col-lg-3 col-md-6">
@@ -133,11 +134,11 @@
                             </select>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
-                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin">
+                            <label for="jenis_kelamin_pasien" class="form-label">Jenis Kelamin Pasien</label>
+                            <select class="form-select" id="jenis_kelamin_pasien" name="jenis_kelamin_pasien">
                                 <option value="">Semua</option>
-                                <option value="Laki-laki" @if(request('jenis_kelamin') == 'Laki-laki') selected @endif>Laki-laki</option>
-                                <option value="Perempuan" @if(request('jenis_kelamin') == 'Perempuan') selected @endif>Perempuan</option>
+                                <option value="Laki-laki" @if(request('jenis_kelamin_pasien') == 'Laki-laki') selected @endif>Laki-laki</option>
+                                <option value="Perempuan" @if(request('jenis_kelamin_pasien') == 'Perempuan') selected @endif>Perempuan</option>
                             </select>
                         </div>
                         <div class="col-lg-3 col-md-6">
@@ -209,9 +210,10 @@
                             <label for="download_kategori" class="form-label">Filter Kategori</label>
                             <select class="form-select" id="download_kategori" name="kategori">
                                 <option value="">Semua</option>
-                                <option value="Polisi">Polisi</option>
+                                <option value="Satlantas">Satlantas</option>
                                 <option value="Ambulans">Ambulans</option>
                                 <option value="Perorangan">Perorangan</option>
+                                <option value="Karyawan">Karyawan</option>
                             </select>
                         </div>
                          <div class="col-lg-3">
@@ -225,7 +227,7 @@
                         </div>
                         <div class="col-lg-3">
                             <label for="download_jenis_kelamin" class="form-label">Filter Gender</label>
-                            <select class="form-select" id="download_jenis_kelamin" name="jenis_kelamin">
+                            <select class="form-select" id="download_jenis_kelamin_pasien" name="jenis_kelamin_pasien">
                                 <option value="">Semua</option>
                                 <option value="Laki-laki">Laki-laki</option>
                                 <option value="Perempuan">Perempuan</option>
@@ -315,7 +317,7 @@ $(document).ready(function() {
     loadData();
     
     // Show advanced filters if any advanced filter has a value on page load
-    const advancedFilters = ['#kategori', '#status', '#jenis_kelamin', '#today_only', '#week_only', '#month_only', '#date_specific'];
+    const advancedFilters = ['#kategori', '#status', '#jenis_kelamin_pasien', '#today_only', '#week_only', '#month_only', '#date_specific'];
     const hasAdvancedFilter = advancedFilters.some(selector => 
         $(selector).val() || (['#today_only', '#week_only', '#month_only'].includes(selector) && $(selector).is(':checked'))
     );
@@ -504,7 +506,7 @@ $(document).ready(function() {
     $('#copy-current-filters').on('click', function() {
         $('#download_kategori').val($('#kategori').val());
         $('#download_status').val($('#status').val());
-        $('#download_jenis_kelamin').val($('#jenis_kelamin').val());
+        $('#download_jenis_kelamin_pasien').val($('#jenis_kelamin_pasien').val());
         $('#download_search').val($('#search').val());
         
         const button = $(this);
@@ -522,6 +524,12 @@ $(document).ready(function() {
         
         if (!startDate || !endDate) {
             Swal.fire('Tanggal Belum Dipilih', 'Harap pilih tanggal mulai dan tanggal akhir', 'warning');
+            Swal.fire({
+                title: 'Tanggal Belum Dipilih',
+                html: 'Harap pilih tanggal mulai dan tanggal akhir',
+                icon: 'warning',
+                confirmButtonColor: '#ff0000ff'
+            });
             return;
         }
 
@@ -534,7 +542,7 @@ $(document).ready(function() {
             end_date: endDate,
             kategori: $('#download_kategori').val(),
             status: $('#download_status').val(),
-            jenis_kelamin: $('#download_jenis_kelamin').val(),
+            jenis_kelamin_pasien: $('#download_jenis_kelamin_pasien').val(),
             search: $('#download_search').val()
         };
 
@@ -607,7 +615,11 @@ $(document).ready(function() {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            Swal.fire('Download Berhasil!', `File ${format.toUpperCase()} telah diunduh.`, 'success');
+            Swal.fire({
+                title: 'Download Berhasil!',
+                html: `File ${format.toUpperCase()} telah diunduh.`,
+                icon: 'success',
+                confirmButtonColor: '#28a745',});
         })
         .catch(error => {
             console.error('Download failed:', error);
@@ -701,36 +713,81 @@ $(document).ready(function() {
         });
     }
     
-    // Status update functionality
-    $(document).on('click', '.btn-status-update', function(e) {
-        e.preventDefault();
-        const escortId = $(this).data('escort-id');
-        const newStatus = $(this).data('status');
-        const statusText = $(this).data('status-text');
-        const buttonElement = $(this);
+    // Status update functionality
+    $(document).on('click', '.btn-status-update', function(e) {
+        e.preventDefault();
+        const escortId = $(this).data('escort-id');
+        const newStatus = $(this).data('status');
+        const statusText = $(this).data('status-text');
+        
+        const row = $(this).closest('tr');
         
-        const row = buttonElement.closest('tr');
-        const escortData = {
-            nama_pengantar: row.find('td:nth-child(3)').text().trim(),
-            nama_pasien: row.find('td:nth-child(7)').text().trim(),
-        };
+        // --- PERUBAHAN DIMULAI DI SINI ---
+        // Mengambil data yang lebih lengkap dari setiap kolom (td) di baris tabel.
+        // Catatan: Angka di 'td:nth-child()' mungkin perlu disesuaikan jika struktur tabel Anda berubah.
+        const escortData = {
+            kategori: row.find('td:nth-child(2)').text().trim(),
+            nama_pengantar: row.find('td:nth-child(3)').text().trim(),
+            no_pengantar: row.find('td:nth-child(4)').text().trim(),
+            nama_ambulance: row.find('td:nth-child(5)').text().trim(),
+            nama_pasien: row.find('td:nth-child(6)').text().trim(),
+            jenis_kelamin_pasien: row.find('td:nth-child(7)').text().trim()
+        };
+        // --- AKHIR DARI PERUBAHAN PENGAMBILAN DATA ---
 
-        Swal.fire({
-            title: `Ubah Status ke "${statusText}"?`,
-            html: `Anda akan mengubah status untuk pengantar <strong>${escortData.nama_pengantar}</strong> (pasien: ${escortData.nama_pasien}). Lanjutkan?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Ubah Status',
-            cancelButtonText: 'Batal',
-            customClass: { popup: 'swal-wide' }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                updateEscortStatus(escortId, newStatus);
+        const swalConfigMap = {
+            'Terverifikasi': { title: 'Verifikasi Pengantar?', icon: 'success', confirmButtonColor: '#28a745', confirmButtonText: 'Ya, Verifikasi' },
+            'Ditolak': { title: 'Tolak Pengantar?', icon: 'error', confirmButtonColor: '#dc3545', confirmButtonText: 'Ya, Tolak' },
+            'Menunggu': { title: 'Ubah ke "Menunggu"?', icon: 'warning', confirmButtonColor: '#ffc107', confirmButtonText: 'Ya, Ubah' },
+            'default': { title: 'Ubah Status?', icon: 'question', confirmButtonColor: '#6c757d', confirmButtonText: 'Ya, Lanjutkan' }
+        };
+
+        const config = swalConfigMap[statusText] || swalConfigMap['default'];
+
+        // --- PERUBAHAN DIMULAI DI SINI ---
+        // Membuat konten HTML yang lebih detail untuk ditampilkan di dalam SweetAlert.
+        let detailHtml = `
+            <div style="text-align: left; margin: 0 1.5rem;">
+                <p class="mb-2">Anda akan mengubah status untuk data berikut:</p>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><strong>Kategori:</strong> <span>${escortData.kategori}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>Nama Pengantar:</strong> <span>${escortData.nama_pengantar}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>No. HP Pengantar:</strong> <span>${escortData.no_pengantar}</span></li>
+        `;
+
+        // Hanya tampilkan nama ambulan jika ada isinya (bukan '-' atau kosong)
+        if (escortData.nama_ambulance && escortData.nama_ambulance !== '-') {
+            detailHtml += `<li class="list-group-item d-flex justify-content-between"><strong>Ambulans:</strong> <span>${escortData.nama_ambulance}</span></li>`;
+        }
+
+        detailHtml += `
+                    <li class="list-group-item d-flex justify-content-between bg-light"><strong>Nama Pasien:</strong> <span>${escortData.nama_pasien}</span></li>
+                    <li class="list-group-item d-flex justify-content-between bg-light"><strong>Jenis Kelamin:</strong> <span>${escortData.jenis_kelamin_pasien}</span></li>
+                </ul>
+                <p class="mt-3">Apakah Anda yakin ingin melanjutkan?</p>
+            </div>
+        `;
+
+        Swal.fire({
+            title: config.title,
+            // Menggunakan variabel detailHtml yang baru dibuat
+            html: detailHtml, 
+            icon: config.icon,
+            showCancelButton: true,
+            confirmButtonColor: config.confirmButtonColor,
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: config.confirmButtonText,
+            cancelButtonText: 'Batal',
+            customClass: { 
+                popup: 'swal-wide',
+                htmlContainer: 'swal-html-container' // Class untuk styling tambahan jika perlu
             }
-        });
-    });
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updateEscortStatus(escortId, newStatus);
+            }
+        });
+    });
 
     function updateEscortStatus(escortId, status) {
         Swal.fire({
@@ -749,7 +806,12 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    Swal.fire('Berhasil!', response.message, 'success');
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: response.message, // Pesan dari server Anda
+                        icon: 'success',
+                        confirmButtonColor: '#28a745' // <-- KUNCI-nya di sini
+                    });
                     loadData(); // Reload data to reflect changes
                 } else {
                     Swal.fire('Gagal', 'Gagal memperbarui status.', 'error');
